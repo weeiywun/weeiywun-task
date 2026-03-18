@@ -853,6 +853,8 @@ function checkPassword() {
     expiry.setHours(23, 59, 59, 999);
     localStorage.setItem(LOCK_KEY, expiry.getTime().toString());
     document.getElementById('lock-screen').style.display = 'none';
+    // 解鎖後如果資料已載入就直接渲染，否則重新拉一次
+    if(tasks.length > 0) { renderAll(); } else { loadTasks(); }
   } else {
     input.classList.add('error');
     errEl.textContent = '密碼錯誤，請再試一次';
@@ -866,7 +868,7 @@ function checkLock() {
   if(Date.now() < expiry) {
     // 今天已解鎖過，直接隱藏鎖定畫面
     document.getElementById('lock-screen').style.display = 'none';
-    return true;
+    return true; // loadTasks() 會緊接著在 init 執行
   }
   // 顯示鎖定畫面，讓 Supabase 在背景載入
   setTimeout(() => {
