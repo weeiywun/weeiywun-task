@@ -747,6 +747,8 @@ function seedTasks() {
     { id:'s2', title:'評估拍照辨識進貨功能（Claude API）', project:'sys', priority:'long', due:null, notes:'拍銷貨單→AI自動辨識品項+金額，節省手動輸入時間。費用約NT$0.15-0.5/張。等系統穩定後再評估是否導入，我已經設計好這個功能可以快速加進去。', done:false },
   ];
   saveTasks();
+  // 寫入 Supabase
+  tasks.forEach(t => persistTask(t));
 }
 
 loadConfig();
