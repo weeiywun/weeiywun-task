@@ -436,7 +436,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
               <button class="cal-nav-btn" onclick="calAddMonths(1)">下個月 ›</button>
             </div>
           </div>
-          <div id="cal-scroll-container" style="max-height:520px;overflow-y:auto;padding:0 16px 16px"></div>
+          <div id="cal-scroll-container" style="max-height:520px;overflow-y:auto;padding:0 16px 16px" ondragover="event.preventDefault()" ondragleave="" ondrop="event.preventDefault()"></div>
         </div>
 
         <div class="section">
@@ -1110,7 +1110,7 @@ function renderCalendar() {
     const daysInPrev  = new Date(yr, mo, 0).getDate();
 
     html += `<div class="cal-month-block" id="cal-month-${yr}-${mo}">`;
-    html += `<div class="cal-month-title">${yr} 年 ${MONTHS[mo]}</div>`;
+    html += `<div class="cal-month-title" ondragover="event.preventDefault()">${yr} 年 ${MONTHS[mo]}</div>`;
     html += `<div class="cal-grid">`;
 
     // DOW headers
@@ -1166,8 +1166,13 @@ function calChip(t) {
 
 async function calDrop(e, newDate) {
   e.preventDefault();
+  e.stopPropagation();
   e.currentTarget.classList.remove('drag-over');
-  const taskId = e.dataTransfer.getData('calTaskId');
+  // 優先用 dataTransfer，失敗則用全域備援
+  const taskId = e.dataTransfer.getData('calTaskId') ||
+                 e.dataTransfer.getData('text/plain') ||
+                 _calDragTaskId;
+  _calDragTaskId = null;
   if(!taskId || !newDate) return;
   const t = tasks.find(x => x.id === taskId);
   if(!t) return;
