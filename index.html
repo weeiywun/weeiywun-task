@@ -23,18 +23,18 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 .app { display: flex; min-height: 100vh; }
-.sidebar { width: 224px; min-width: 224px; background: var(--ink); color: #e8e4dc; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
-.sidebar-logo { padding: 24px 20px 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
-.brand { font-family: 'DM Serif Display', serif; font-size: 19px; color: #fff; }
-.sub { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 2px; }
+.sidebar { width: 224px; min-width: 224px; background: #f0ece4; color: var(--ink-2); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+.sidebar-logo { padding: 24px 20px 18px; border-bottom: 1px solid var(--border); }
+.brand { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--ink); }
+.sub { font-size: 11px; color: var(--ink-4); margin-top: 2px; }
 .sidebar-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
-.nav-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.3); padding: 12px 12px 5px; }
-.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: var(--radius-sm); cursor: pointer; color: rgba(255,255,255,.55); font-size: 13px; font-weight: 400; transition: all .15s; margin-bottom: 1px; }
-.nav-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); }
-.nav-item.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 500; }
+.nav-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); padding: 12px 12px 5px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--ink-3); font-size: 13px; font-weight: 400; transition: all .15s; margin-bottom: 1px; }
+.nav-item:hover { background: rgba(0,0,0,.05); color: var(--ink); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
 .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
 .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 999px; min-width: 18px; text-align: center; }
-.sidebar-bottom { padding: 10px 8px; border-top: 1px solid rgba(255,255,255,.08); }
+.sidebar-bottom { padding: 10px 8px; border-top: 1px solid var(--border); }
 .main { margin-left: 224px; flex: 1; display: flex; flex-direction: column; }
 .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; height: 54px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .topbar-title { font-size: 15px; font-weight: 600; }
@@ -162,13 +162,16 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 <body>
 <div class="app">
   <nav class="sidebar">
-    <div class="sidebar-logo">
-      <div class="brand">惟元</div>
-      <div class="sub">專案進度追蹤系統</div>
+    <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between;padding-right:14px">
+      <div>
+        <div class="brand">惟元</div>
+        <div class="sub">專案進度追蹤系統</div>
+      </div>
+      <button onclick="openAddTask()" title="新增任務" style="width:28px;height:28px;border-radius:7px;border:1.5px solid var(--border);background:var(--surface);color:var(--accent);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='var(--surface)'">＋</button>
     </div>
     <div class="sidebar-nav">
       <div class="nav-label">主選單</div>
-      <div class="nav-item active" onclick="switchView('dashboard')"><span class="icon">🏠</span>今日概覽</div>
+      <div class="nav-item active" onclick="switchView('dashboard')"><span class="icon">📅</span>當週任務</div>
       <div class="nav-item" onclick="switchView('roadmap')"><span class="icon">🗺</span>三個月路線圖</div>
       <div class="nav-item" onclick="switchView('tasks')"><span class="icon">📋</span>全部任務<span class="nav-badge" id="badge-overdue" style="display:none">0</span></div>
       <div class="nav-item" onclick="switchView('kanban')"><span class="icon">🗂</span>看板視圖</div>
@@ -179,7 +182,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','brand')"><span class="icon" style="color:#9b4e7e">●</span>品牌視覺</div>
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','sys')"><span class="icon" style="color:#5a4abf">●</span>進貨系統</div>
       <div class="nav-label">工具</div>
-      <div class="nav-item" onclick="switchView('settings')"><span class="icon">🔔</span>LINE 通知設定</div>
+      <div class="nav-item" onclick="switchView('settings')"><span class="icon">⚙️</span>設定</div>
     </div>
     <div class="sidebar-bottom">
       <div class="nav-item" onclick="openAddTask()"><span class="icon">＋</span>新增任務</div>
@@ -188,10 +191,12 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="topbar-title">今日概覽</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="topbar-title" id="topbar-title">當週任務一覽</div>
+        <button onclick="openAddTask()" id="topbar-add-btn" title="新增任務" style="width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--accent);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">＋</button>
+      </div>
       <div class="topbar-actions">
         <button class="btn btn-secondary btn-sm" onclick="sendLineTest()">📱 測試 LINE</button>
-        <button class="btn btn-primary btn-sm" onclick="openAddTask()">＋ 新增任務</button>
       </div>
     </div>
 
@@ -202,19 +207,19 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
         <div class="today-banner">
           <div>
             <div class="date-label" id="today-date-label"></div>
-            <div class="greeting">早安，今天要做什麼？</div>
+            <div class="greeting">這週要完成什麼？</div>
             <div class="task-count" id="today-task-count"></div>
           </div>
           <div style="font-size:36px;opacity:.5">🌿</div>
         </div>
         <div class="stats-row">
           <div class="stat-card urgent"><div class="stat-num" id="stat-overdue">0</div><div class="stat-label">⚠️ 已逾期</div></div>
-          <div class="stat-card today"><div class="stat-num" id="stat-today">0</div><div class="stat-label">📅 今日到期</div></div>
+          <div class="stat-card today"><div class="stat-num" id="stat-today">0</div><div class="stat-label">📅 本週到期</div></div>
           <div class="stat-card"><div class="stat-num" id="stat-week">0</div><div class="stat-label">🔴 本週必做</div></div>
           <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">📌 進行中總數</div></div>
         </div>
         <div class="section">
-          <div class="section-header"><div><div class="section-title">今日需要關注</div><div class="section-sub">逾期 + 今日到期</div></div></div>
+          <div class="section-header"><div><div class="section-title">本週需要關注</div><div class="section-sub">逾期 + 本週到期</div></div></div>
           <div class="card"><div id="today-task-list"></div></div>
         </div>
         <div class="section">
@@ -302,19 +307,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
             <div id="guide-steps"></div>
           </div>
         </div>
-        <div class="settings-section">
-          <div class="settings-header">🗄️ Supabase 雲端同步（選配）</div>
-          <div class="settings-body">
-            <div class="form-row"><label class="form-label">Supabase Project URL</label><input class="form-input" id="sb-url" placeholder="https://xxxxxxxx.supabase.co"></div>
-            <div class="form-row"><label class="form-label">Supabase anon key</label><input class="form-input" id="sb-key" type="password" placeholder="eyJ…"></div>
-            <div style="display:flex;gap:10px"><button class="btn btn-primary" onclick="saveSupabase()">💾 儲存並連線</button><button class="btn btn-secondary" onclick="testSupabase()">🔗 測試連線</button></div>
-            <div id="sb-status" style="margin-top:8px;font-size:12px;color:var(--ink-3)"></div>
-            <div style="margin-top:12px;padding:11px 13px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border)">
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--ink-2)">📋 建立資料表 SQL（點擊複製）</div>
-              <div class="step-code" onclick="copySQL()" style="cursor:pointer" id="setup-sql">點擊複製</div>
-            </div>
-          </div>
-        </div>
+
       </div>
 
     </div>
@@ -424,6 +417,7 @@ function loadConfig() {
   supabaseKey=localStorage.getItem('sb_key')||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrcnl1bWVyZmJxZndmeXhlZ3ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjQxMDgsImV4cCI6MjA4OTIwMDEwOH0.AA0aqoYqln4e-uoMoqQpk_BfqexA6ncHOLi9SDOne34';
   const el=document.getElementById('sb-url'); if(el){ el.value=supabaseURL||'https://lkryumerfbqfwfyxegve.supabase.co'; document.getElementById('sb-key').value=supabaseKey||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrcnl1bWVyZmJxZndmeXhlZ3ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjQxMDgsImV4cCI6MjA4OTIwMDEwOH0.AA0aqoYqln4e-uoMoqQpk_BfqexA6ncHOLi9SDOne34'; }
   const lt=document.getElementById('line-token'); if(lt){ lt.value=localStorage.getItem('line_token')||''; document.getElementById('line-userid').value=localStorage.getItem('line_userid')||''; }
+  const cm=document.getElementById('line-custom-msg'); if(cm) cm.value=localStorage.getItem('line_custom_msg')||'';
   document.getElementById('setup-sql').textContent=SQL;
 }
 async function loadTasks() {
@@ -452,19 +446,29 @@ function renderAll() { renderDashboard(); renderTaskList(); renderKanban(); rend
 
 function renderDashboard() {
   const now=new Date();
-  document.getElementById('today-date-label').textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${'日一二三四五六'[now.getDay()]}`;
+  // 本週範圍：今天到 7 天後
+  const weekStart = today();
+  const weekEndDate = new Date(); weekEndDate.setDate(weekEndDate.getDate()+6);
+  const weekEnd = weekEndDate.toISOString().slice(0,10);
+  // 週次顯示
+  const weekday=['日','一','二','三','四','五','六'];
+  const m=now.getMonth()+1, d=now.getDate();
+  const we=weekEndDate, wem=we.getMonth()+1, wed=we.getDate();
+  document.getElementById('today-date-label').textContent=`本週 ${m}/${d}（${weekday[now.getDay()]}）～ ${wem}/${wed}（${weekday[we.getDay()]}）`;
   const active=tasks.filter(t=>!t.done);
   const overdue=active.filter(t=>t.due&&inDays(t.due)<0);
-  const todayT=active.filter(t=>t.due&&inDays(t.due)===0);
+  const thisWeekDue=active.filter(t=>t.due&&inDays(t.due)>=0&&inDays(t.due)<=6);
   const weekT=active.filter(t=>t.priority==='week');
   document.getElementById('stat-overdue').textContent=overdue.length;
-  document.getElementById('stat-today').textContent=todayT.length;
+  document.getElementById('stat-today').textContent=thisWeekDue.length;
   document.getElementById('stat-week').textContent=weekT.length;
   document.getElementById('stat-total').textContent=active.length;
-  const focus=[...overdue,...todayT.filter(t=>!overdue.includes(t))];
+  // focus list = 逾期 + 本週到期（不重複）
+  const focusIds=new Set(overdue.map(t=>t.id));
+  const focus=[...overdue,...thisWeekDue.filter(t=>!focusIds.has(t.id))];
   const tl=document.getElementById('today-task-list');
-  tl.innerHTML=focus.length===0?`<div class="empty-state"><div class="icon">🎉</div><div class="title">沒有逾期或今日到期的任務</div></div>`:focus.map(t=>taskItemHTML(t)).join('');
-  document.getElementById('today-task-count').textContent=focus.length>0?`⚡ ${focus.length} 件需要今日關注`:'今天沒有緊急任務，繼續保持！';
+  tl.innerHTML=focus.length===0?`<div class="empty-state"><div class="icon">🎉</div><div class="title">本週沒有逾期或到期的任務</div></div>`:focus.map(t=>taskItemHTML(t)).join('');
+  document.getElementById('today-task-count').textContent=focus.length>0?`⚡ ${focus.length} 件本週需要關注`:'本週沒有緊急任務，繼續保持！';
   const grid=document.getElementById('project-summary-grid');
   grid.innerHTML=Object.entries(PROJECT_MAP).filter(([k])=>k!=='other'&&k!=='sys').map(([key,pm])=>{
     const pts=active.filter(t=>t.project===key);
@@ -609,7 +613,7 @@ function deleteTask(id) {
 }
 
 // ── Nav ──
-const VIEW_TITLES={dashboard:'今日概覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',settings:'LINE 通知設定'};
+const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
 function switchView(v) {
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -648,14 +652,18 @@ function refreshPreview() { const el=document.getElementById('line-preview-text'
 function saveLineSettings() {
   localStorage.setItem('line_token',document.getElementById('line-token').value.trim());
   localStorage.setItem('line_userid',document.getElementById('line-userid').value.trim());
-  refreshPreview(); toast('LINE 設定已儲存','success');
+  const custom=document.getElementById('line-custom-msg');
+  if(custom) localStorage.setItem('line_custom_msg',custom.value);
+  refreshPreview(); toast('設定已儲存','success');
 }
 async function sendLineTest() {
   const token=localStorage.getItem('line_token')||document.getElementById('line-token')?.value;
   const uid=localStorage.getItem('line_userid')||document.getElementById('line-userid')?.value;
   if(!token||!uid){toast('請先填入 Token 和 User ID','error');switchView('settings');return;}
   try {
-    const r=await fetch('https://api.line.me/v2/bot/message/push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({to:uid,messages:[{type:'text',text:buildLineMessage()}]})});
+    const customMsg=localStorage.getItem('line_custom_msg')||'';
+    const msgText = customMsg.trim() ? customMsg : buildLineMessage();
+    const r=await fetch('https://api.line.me/v2/bot/message/push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({to:uid,messages:[{type:'text',text:msgText}]})});
     if(r.ok) toast('✅ LINE 已發送！','success'); else { const e=await r.json(); toast(`失敗：${e.message||r.status}`,'error'); }
   } catch(e){toast('網路錯誤','error');}
 }
