@@ -142,6 +142,29 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--accent); }
 .toast.error { background: var(--danger); }
+
+/* ─── Gantt ─── */
+.gantt-wrap { overflow-x: auto; padding-bottom: 8px; }
+.gantt-table { min-width: 900px; width: 100%; border-collapse: collapse; }
+.gantt-label-col { width: 180px; min-width: 160px; }
+.gantt-row-head { background: var(--surface-2); }
+.gantt-row-head th { padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--ink-3); text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.gantt-row-head th.gantt-label-col { text-align: left; }
+.gantt-task-row td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0; height: 36px; position: relative; }
+.gantt-task-row td.gantt-label-cell { padding: 0 10px; }
+.gantt-task-label { font-size: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; display: flex; align-items: center; gap: 6px; height: 36px; }
+.gantt-bar { position: absolute; top: 7px; height: 22px; border-radius: 4px; min-width: 6px; opacity: .85; display: flex; align-items: center; padding: 0 6px; font-size: 10px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; cursor: default; transition: opacity .15s; }
+.gantt-bar:hover { opacity: 1; }
+.gantt-bar.no-due { width: 10px; border-radius: 5px; padding: 0; }
+.gantt-today-line { position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--danger); opacity: .6; z-index: 2; pointer-events: none; }
+.gantt-month-sep { border-right: 1.5px solid var(--border) !important; }
+.gantt-section-row td { background: var(--surface-2); padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-4); border-bottom: 1px solid var(--border); }
+/* ─── Roadmap drag ─── */
+.rm-task { cursor: grab; user-select: none; }
+.rm-task:active { cursor: grabbing; opacity: .7; }
+.rm-task.drag-over-target { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.rm-col-drop { transition: background .15s; }
+.rm-col-drop.drag-over { background: var(--accent-light); }
 /* Roadmap view */
 .roadmap-grid { display: grid; grid-template-columns: 100px repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .rm-cell { background: var(--surface); padding: 12px 14px; }
@@ -173,6 +196,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="nav-label">主選單</div>
       <div class="nav-item active" onclick="switchView('dashboard')"><span class="icon">📅</span>當週任務</div>
       <div class="nav-item" onclick="switchView('roadmap')"><span class="icon">🗺</span>三個月路線圖</div>
+      <div class="nav-item" onclick="switchView('gantt')"><span class="icon">📊</span>年度甘特圖</div>
       <div class="nav-item" onclick="switchView('tasks')"><span class="icon">📋</span>全部任務<span class="nav-badge" id="badge-overdue" style="display:none">0</span></div>
       <div class="nav-item" onclick="switchView('kanban')"><span class="icon">🗂</span>看板視圖</div>
       <div class="nav-label">專案篩選</div>
@@ -239,6 +263,22 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
         </div>
         <div style="background:var(--accent-light);border:1px solid #b8d9d0;border-radius:var(--radius);padding:14px 18px;font-size:13px;color:#1a4a3a;line-height:1.7;margin-top:4px">
           ⭐ <strong>第一週最重要的事：</strong>定義惟元品牌的三個關鍵詞（例如：溫潤、專業、在地），這是後續所有設計決策的依據，做完這件事，網站設計、拍照風格、文案語氣都會有方向。
+        </div>
+      </div>
+
+      <!-- Gantt -->
+      <div class="view" id="view-gantt">
+        <div class="section">
+          <div class="section-header">
+            <div><div class="section-title">年度甘特圖</div><div class="section-sub" id="gantt-year-label"></div></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-secondary btn-sm" onclick="ganttPrevYear()">‹ 上一年</button>
+              <button class="btn btn-secondary btn-sm" onclick="ganttNextYear()">下一年 ›</button>
+            </div>
+          </div>
+          <div class="card gantt-wrap">
+            <div id="gantt-container"></div>
+          </div>
         </div>
       </div>
 
@@ -414,6 +454,7 @@ function dueTag(due) { if(!due) return ''; const cls=dueCls(due); return `<span 
 
 // ── Storage ──
 
+
 async function syncNow() {
   const btn = document.getElementById('sync-btn');
   if(btn){ btn.textContent='同步中…'; btn.disabled=true; }
@@ -587,11 +628,12 @@ function renderRoadmap() {
     [0,1,2].forEach(mi=>{
       const ts=tasks.filter(t=>!t.done&&t.project===row.key&&getMonth(t)===mi);
       const donets=tasks.filter(t=>t.done&&t.project===row.key&&getMonth(t)===mi);
-      html+=`<div class="rm-cell">`;
-      donets.forEach(t=>{html+=`<div class="rm-task ${row.key} done" onclick="toggleDone('${t.id}')">${esc(t.title)}</div>`;});
+      const colPriority=['week','month','long'][mi];
+      html+=`<div class="rm-cell rm-col-drop" data-priority="${colPriority}">`;
+      donets.forEach(t=>{html+=`<div class="rm-task ${row.key} done" data-taskid="${t.id}" onclick="toggleDone('${t.id}')">${esc(t.title)}</div>`;});
       ts.forEach(t=>{
         const isMilestone=t.title.includes('上線')||t.title.includes('完成')||t.title.includes('規範');
-        html+=`<div class="rm-task ${row.key} ${isMilestone?'milestone':''}" onclick="toggleDone('${t.id}')">${esc(t.title)}</div>`;
+        html+=`<div class="rm-task ${row.key} ${isMilestone?'milestone':''}" data-taskid="${t.id}" onclick="toggleDone('${t.id}')">${esc(t.title)}</div>`;
       });
       if(!ts.length&&!donets.length) html+=`<div style="font-size:11px;color:var(--ink-4);text-align:center;padding:8px">—</div>`;
       html+=`</div>`;
@@ -605,6 +647,147 @@ function updateBadges() {
   const b=document.getElementById('badge-overdue');
   if(n>0){b.textContent=n;b.style.display='';}else b.style.display='none';
 }
+
+// ── Gantt ──────────────────────────────────────────────
+let ganttYear = new Date().getFullYear();
+
+function ganttPrevYear() { ganttYear--; renderGantt(); }
+function ganttNextYear() { ganttYear++; renderGantt(); }
+
+function renderGantt() {
+  document.getElementById('gantt-year-label').textContent = `${ganttYear} 年 1 月 ─ 12 月`;
+  const yearStart = new Date(ganttYear, 0, 1);
+  const yearEnd   = new Date(ganttYear, 11, 31);
+  const totalDays = Math.round((yearEnd - yearStart) / 86400000) + 1;
+  const months    = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const monthDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+  if(ganttYear%4===0) monthDays[1]=29;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayOffset = Math.round((today - yearStart) / 86400000);
+  const todayPct = (todayOffset / totalDays) * 100;
+
+  // Build header
+  let headerCells = `<th class="gantt-label-col">任務</th>`;
+  months.forEach((m,i) => {
+    const w = (monthDays[i]/totalDays*100).toFixed(2);
+    headerCells += `<th style="width:${w}%" class="${i<11?'':'gantt-month-sep'}">${m}</th>`;
+  });
+
+  // Build month offset map for bar positioning
+  const monthOffsets = [0];
+  for(let i=0;i<11;i++) monthOffsets.push(monthOffsets[i]+monthDays[i]);
+
+  function taskToBar(t) {
+    const proj = PROJECT_MAP[t.project]||PROJECT_MAP.other;
+    const color = {
+      line:'#00b900', 'web-product':'#3b6e5e',
+      'web-seo':'#1a6896', brand:'#9b4e7e',
+      sys:'#5a4abf', other:'#8a6b1a'
+    }[t.project]||'#8a6b1a';
+
+    // Start: today if no start, or Jan 1 if past
+    let startDate = new Date(Math.max(today, yearStart));
+    // Due date
+    let endDate = t.due ? new Date(t.due) : null;
+
+    // If task has due date in this year
+    if(endDate && endDate.getFullYear()===ganttYear) {
+      if(startDate > endDate) startDate = new Date(yearStart);
+      const startOff = Math.max(0, Math.round((startDate - yearStart)/86400000));
+      const endOff   = Math.min(totalDays-1, Math.round((endDate - yearStart)/86400000));
+      const left  = (startOff/totalDays*100).toFixed(2);
+      const width = Math.max(0.5, ((endOff-startOff+1)/totalDays*100)).toFixed(2);
+      return `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color}" title="${esc(t.title)} — ${t.due}"></div>`;
+    } else if(!endDate) {
+      // No due: show dot at today if in this year
+      if(today.getFullYear()===ganttYear){
+        const off = Math.round((today-yearStart)/86400000);
+        const left = (off/totalDays*100).toFixed(2);
+        return `<div class="gantt-bar no-due" style="left:${left}%;background:${color}" title="${esc(t.title)} — 無截止日"></div>`;
+      }
+      return '';
+    }
+    return '';
+  }
+
+  // Group by project
+  const PROJ_ORDER = ['line','web-product','web-seo','brand','sys','other'];
+  let rows = '';
+  PROJ_ORDER.forEach(pk => {
+    const pm = PROJECT_MAP[pk]||PROJECT_MAP.other;
+    const pts = tasks.filter(t=>t.project===pk && !t.done);
+    if(!pts.length) return;
+    rows += `<tr class="gantt-section-row"><td colspan="${months.length+1}">${pm.label}</td></tr>`;
+    pts.forEach(t => {
+      const bar = taskToBar(t);
+      rows += `<tr class="gantt-task-row">
+        <td class="gantt-label-cell gantt-label-col">
+          <div class="gantt-task-label">
+            <span class="tag ${pm.cls}" style="font-size:9px;padding:1px 5px">${pm.label.slice(0,2)}</span>
+            <span title="${esc(t.title)}">${esc(t.title)}</span>
+          </div>
+        </td>
+        ${months.map((_,mi)=>{
+          const isLast = mi===11;
+          return `<td class="${isLast?'gantt-month-sep':''}" style="position:relative">
+            ${mi===0&&todayPct>=0&&todayPct<=100?`<div class="gantt-today-line" style="left:${(todayOffset/totalDays*100).toFixed(2)}%"></div>`:''}
+            ${bar}
+          </td>`;
+        }).join('')}
+      </tr>`;
+    });
+  });
+
+  if(!rows) {
+    rows = `<tr><td colspan="${months.length+1}" style="text-align:center;padding:32px;color:var(--ink-4);font-size:13px">目前沒有進行中的任務</td></tr>`;
+  }
+
+  document.getElementById('gantt-container').innerHTML = `
+    <table class="gantt-table">
+      <thead><tr class="gantt-row-head">${headerCells}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Roadmap Drag & Drop ────────────────────────────────
+function renderRoadmapDraggable() {
+  renderRoadmap();
+  // Add drag events after render
+  setTimeout(() => {
+    document.querySelectorAll('.rm-task').forEach(card => {
+      card.setAttribute('draggable','true');
+      card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('taskId', card.dataset.taskid);
+        e.dataTransfer.effectAllowed = 'move';
+        card.style.opacity = '.5';
+      });
+      card.addEventListener('dragend', () => { card.style.opacity = ''; });
+    });
+    document.querySelectorAll('.rm-col-drop').forEach(col => {
+      col.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.classList.add('drag-over');
+      });
+      col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+      col.addEventListener('drop', e => {
+        e.preventDefault();
+        col.classList.remove('drag-over');
+        const taskId = e.dataTransfer.getData('taskId');
+        const newPriority = col.dataset.priority;
+        if(!taskId||!newPriority) return;
+        const t = tasks.find(x=>x.id===taskId);
+        if(!t) return;
+        t.priority = newPriority;
+        persistTask(t);
+        renderRoadmapDraggable();
+        toast(`已移至「${PRIORITY_MAP[newPriority].label}」`,'success');
+      });
+    });
+  }, 50);
+}
+
 
 // ── CRUD ──
 function openAddTask() {
@@ -647,7 +830,7 @@ function deleteTask(id) {
 }
 
 // ── Nav ──
-const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
+const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',gantt:'年度甘特圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
 function switchView(v) {
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -655,7 +838,8 @@ function switchView(v) {
   document.getElementById('topbar-title').textContent=VIEW_TITLES[v]||v;
   if(v==='tasks') renderTaskList();
   if(v==='kanban') renderKanban();
-  if(v==='roadmap') renderRoadmap();
+  if(v==='roadmap') renderRoadmapDraggable();
+  if(v==='gantt') renderGantt();
   if(v==='settings'){loadConfig();renderGuide();}
 }
 function setFilter(type,value) {
