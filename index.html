@@ -214,10 +214,11 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .sidebar-toggle:hover { background: var(--accent-light); color: var(--accent); }
 .sidebar-toggle.collapsed { left: 8px; }
 @media (max-width: 768px) {
-  .sidebar { width: 0; min-width: 0; }
+  .sidebar { width: 0 !important; min-width: 0 !important; }
   .main { margin-left: 0 !important; }
-  .sidebar-toggle { left: 8px; }
-  .sidebar-toggle.open { left: 180px; }
+  .sidebar-toggle { left: 8px !important; }
+  .sidebar.mobile-open { width: 224px !important; min-width: 224px !important; }
+  .sidebar-toggle.mobile-open { left: 180px !important; }
 }
 
 
@@ -292,6 +293,15 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       autofocus>
     <button class="lock-btn" onclick="checkPassword()">進入</button>
     <div class="lock-err" id="lock-err"></div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12.5px;color:var(--ink-3);font-style:italic;line-height:1.6" id="lock-quote"></div>
+    <script>
+    (function(){
+      var Q=["現在就是最好的時機。","放手，才有空間接住新的。","不需要全部想清楚，先踏出第一步。","答案早就在你心裡了。","慢慢來，比較快。","這件事沒有你想的那麼複雜。","休息也是工作的一部分。","你已經做得比自己以為的更好。","把它寫下來，你就不會忘記。","有些事情，等一等就自己解決了。","不要和昨天的自己比，和昨天的問題比。","做了再說，想了再想只會更亂。","小事做好，大事自然跟上。","對的事情，不需要說服自己。","先完成，再完美。","你不必同時做所有事。","那個一直拖著的事，今天就解決它。","停下來喝杯水，再繼續。","把清單縮短，而不是把時間拉長。","一次只做一件事，把它做完。","你現在擔心的事，三個月後不會記得。","信任自己第一個直覺。","今天能交出去的，就不要留到明天。","說「不」，也是一種完成。","你已經開始了，這就是最難的部分。","完成比完美更有價值。","這件事三年後還重要嗎？","你值得把事情做好。","每天進步一點點，一年後你認不出自己。","今天的你，比昨天的你更清楚方向。","去做就知道了。","繼續，你走在對的路上。","不積跬步，無以至千里。── 荀子","千里之行，始於足下。── 老子","知之者不如好之者，好之者不如樂之者。── 孔子","學而不思則罔，思而不學則殆。── 孔子","先完成，再完美。── Sheryl Sandberg","不經一番寒徹骨，焉得梅花撲鼻香。── 古諺","業精於勤，荒於嬉。── 韓愈","上工治未病，不治已病。── 《黃帝內經》"];
+      var now=new Date();
+      var seed=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+      document.getElementById('lock-quote').textContent=Q[seed%Q.length];
+    })();
+    </script>
   </div>
 </div>
 
@@ -759,17 +769,27 @@ function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const toggle  = document.getElementById('sidebar-toggle');
   const main    = document.querySelector('.main');
-  const isCollapsed = sidebar.classList.toggle('collapsed');
-  if(isCollapsed) {
-    toggle.textContent = '▶';
-    toggle.classList.add('collapsed');
-    main.style.marginLeft = '0';
+  const isMobile = window.innerWidth <= 768;
+  if(isMobile) {
+    // 手機版：用 mobile-open class 控制
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    toggle.textContent = isOpen ? '◀' : '▶';
+    toggle.classList.toggle('mobile-open', isOpen);
+    main.style.marginLeft = '0'; // 手機版 main 永遠不推移
   } else {
-    toggle.textContent = '◀';
-    toggle.classList.remove('collapsed');
-    main.style.marginLeft = '224px';
+    // 桌面版：用 collapsed class
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    if(isCollapsed) {
+      toggle.textContent = '▶';
+      toggle.classList.add('collapsed');
+      main.style.marginLeft = '0';
+    } else {
+      toggle.textContent = '◀';
+      toggle.classList.remove('collapsed');
+      main.style.marginLeft = '224px';
+    }
+    localStorage.setItem('sidebar_collapsed', isCollapsed ? '1' : '0');
   }
-  localStorage.setItem('sidebar_collapsed', isCollapsed ? '1' : '0');
 }
 
 function initSidebar() {
@@ -865,11 +885,9 @@ function checkPassword() {
 function checkLock() {
   const expiry = parseInt(localStorage.getItem(LOCK_KEY) || '0');
   if(Date.now() < expiry) {
-    // 今天已解鎖過，直接隱藏鎖定畫面
     document.getElementById('lock-screen').style.display = 'none';
-    return true; // loadTasks() 會緊接著在 init 執行
+    return true;
   }
-  // 顯示鎖定畫面，讓 Supabase 在背景載入
   setTimeout(() => {
     const input = document.getElementById('lock-input');
     if(input) input.focus();
@@ -1002,18 +1020,23 @@ function renderDashboard() {
   updateYearCountdown();
   renderCalendar();
   const now=new Date();
-  // 本週範圍：今天到 7 天後
-  const weekStart = today();
-  const weekEndDate = new Date(); weekEndDate.setDate(weekEndDate.getDate()+6);
-  const weekEnd = weekEndDate.toISOString().slice(0,10);
+  // 本週範圍：本週日～本週六
+  const dowNow = now.getDay(); // 0=日
+  const weekSunDate = new Date(now); weekSunDate.setDate(now.getDate() - dowNow);
+  const weekSatDate = new Date(now); weekSatDate.setDate(now.getDate() + (6 - dowNow));
+  const weekSunStr = weekSunDate.toISOString().slice(0,10);
+  const weekSatStr = weekSatDate.toISOString().slice(0,10);
   // 週次顯示
-  const weekday=['日','一','二','三','四','五','六'];
-  const m=now.getMonth()+1, d=now.getDate();
-  const we=weekEndDate, wem=we.getMonth()+1, wed=we.getDate();
-  document.getElementById('today-date-label').textContent=`本週 ${m}/${d}（${weekday[now.getDay()]}）～ ${wem}/${wed}（${weekday[we.getDay()]}）`;
+  const sm=weekSunDate.getMonth()+1, sd=weekSunDate.getDate();
+  const em=weekSatDate.getMonth()+1, ed=weekSatDate.getDate();
+  document.getElementById('today-date-label').textContent=`本週 ${sm}/${sd}（日）～ ${em}/${ed}（六）`;
   const active=tasks.filter(t=>!t.done);
   const overdue=active.filter(t=>t.due&&inDays(t.due)<0);
-  const thisWeekDue=active.filter(t=>t.due&&inDays(t.due)>=0&&inDays(t.due)<=6);
+  // 本週到期：週日到週六之間
+  const thisWeekDue=active.filter(t=>{
+    if(!t.due) return false;
+    return t.due >= weekSunStr && t.due <= weekSatStr && inDays(t.due) >= 0;
+  });
   const weekT=active.filter(t=>t.priority==='week');
   document.getElementById('stat-overdue').textContent=overdue.length;
   document.getElementById('stat-today').textContent=thisWeekDue.length;
@@ -1375,11 +1398,21 @@ async function seedAndPush() {
 }
 
 
-loadConfig();
-initSidebar();
-checkLock();
-loadTasks();
-setInterval(updateYearCountdown, 60000);
+// DOM 完全就緒後執行初始化
+document.addEventListener('DOMContentLoaded', function() {
+  loadConfig();
+  initSidebar();
+  // 先填入鎖定畫面的每日一句（DOM 已就緒）
+  const qEl = document.getElementById('lock-quote');
+  if(qEl) {
+    const now = new Date();
+    const seed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+    qEl.textContent = DAILY_QUOTES[seed % DAILY_QUOTES.length];
+  }
+  checkLock();
+  loadTasks();
+  setInterval(updateYearCountdown, 60000);
+});
 </script>
 </body>
 </html>
