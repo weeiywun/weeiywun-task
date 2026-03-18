@@ -1291,12 +1291,27 @@ async function sendLineTest() {
   const token=localStorage.getItem('line_token')||document.getElementById('line-token')?.value;
   const uid=localStorage.getItem('line_userid')||document.getElementById('line-userid')?.value;
   if(!token||!uid){toast('請先填入 Token 和 User ID','error');switchView('settings');return;}
+  const msgText = buildLineMessage();
   try {
-    const customMsg=localStorage.getItem('line_custom_msg')||'';
-    const msgText = customMsg.trim() ? customMsg : buildLineMessage();
-    const r=await fetch('https://api.line.me/v2/bot/message/push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({to:uid,messages:[{type:'text',text:msgText}]})});
-    if(r.ok) toast('✅ LINE 已發送！','success'); else { const e=await r.json(); toast(`失敗：${e.message||r.status}`,'error'); }
-  } catch(e){toast('網路錯誤','error');}
+    // 透過 Supabase Edge Function 轉發，解決 CORS 問題
+    const edgeUrl = `${supabaseURL}/functions/v1/send-line`;
+    const r = await fetch(edgeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseKey}`
+      },
+      body: JSON.stringify({ token, userId: uid, message: msgText })
+    });
+    if(r.ok) {
+      toast('✅ LINE 通知已發送！','success');
+    } else {
+      const e = await r.json();
+      toast(`發送失敗：${e.error||e.message||r.status}`, 'error');
+    }
+  } catch(e) {
+    toast('網路錯誤：' + e.message, 'error');
+  }
 }
 function saveSupabase() {
   supabaseURL=document.getElementById('sb-url').value.trim().replace(/\/$/,'');
