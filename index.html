@@ -773,7 +773,7 @@ function saveTasks() { localStorage.setItem('wy_tasks',JSON.stringify(tasks)); }
 async function persistTask(t) {
   saveTasks();
   if(!supabaseURL||!supabaseKey) return;
-  try { await fetch(`${supabaseURL}/rest/v1/tasks`,{method:'POST',headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:t.id,title:t.title,project:t.project,priority:t.priority,due_date:t.due||null,notes:t.notes||'',done:t.done})}); } catch(e){}
+  try { await fetch(`${supabaseURL}/rest/v1/tasks`,{method:'POST',headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:t.id,title:t.title,project:t.project,priority:t.priority,due_date:t.due||null,notes:t.notes||'',done:t.done,completed_at:t.completed_at||null})}); } catch(e){}
 }
 async function deleteTaskRemote(id) {
   if(!supabaseURL||!supabaseKey) return;
@@ -1150,7 +1150,7 @@ async function seedAndPush() {
       const r=await fetch(`${supabaseURL}/rest/v1/tasks`,{
         method:'POST',
         headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},
-        body:JSON.stringify({id:t.id,title:t.title,project:t.project,priority:t.priority,due_date:t.due||null,notes:t.notes||'',done:t.done})
+        body:JSON.stringify({id:t.id,title:t.title,project:t.project,priority:t.priority,due_date:t.due||null,notes:t.notes||'',done:t.done,completed_at:t.completed_at||null})
       });
       if(r.ok) ok++;
     } catch(e){}
