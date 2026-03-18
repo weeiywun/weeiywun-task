@@ -424,10 +424,21 @@ async function loadTasks() {
   if(supabaseURL&&supabaseKey) {
     try {
       const r=await fetch(`${supabaseURL}/rest/v1/tasks?order=created_at.desc`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});
-      if(r.ok){ const data=await r.json(); tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done})); saveTasks(); renderAll(); return; }
+      if(r.ok){
+        const data=await r.json();
+        if(data.length>0){
+          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done}));
+          saveTasks(); renderAll(); return;
+        }
+        // Supabase 是空的 → 用預設任務資料初始化
+        await seedAndPush();
+        renderAll(); return;
+      }
     } catch(e){}
   }
+  // Supabase 連不上 → 用 localStorage
   tasks=JSON.parse(localStorage.getItem('wy_tasks')||'[]');
+  if(tasks.length===0) { seedTasks(); }
   renderAll();
 }
 function saveTasks() { localStorage.setItem('wy_tasks',JSON.stringify(tasks)); }
@@ -747,12 +758,28 @@ function seedTasks() {
     { id:'s2', title:'評估拍照辨識進貨功能（Claude API）', project:'sys', priority:'long', due:null, notes:'拍銷貨單→AI自動辨識品項+金額，節省手動輸入時間。費用約NT$0.15-0.5/張。等系統穩定後再評估是否導入，我已經設計好這個功能可以快速加進去。', done:false },
   ];
   saveTasks();
-  // 寫入 Supabase
-  tasks.forEach(t => persistTask(t));
 }
 
+async function seedAndPush() {
+  seedTasks();
+  // 逐一寫入 Supabase，確保全部完成
+  let ok=0;
+  for(const t of tasks){
+    try{
+      const r=await fetch(`${supabaseURL}/rest/v1/tasks`,{
+        method:'POST',
+        headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},
+        body:JSON.stringify({id:t.id,title:t.title,project:t.project,priority:t.priority,due_date:t.due||null,notes:t.notes||'',done:t.done})
+      });
+      if(r.ok) ok++;
+    } catch(e){}
+  }
+  console.log(`Supabase 初始化完成：${ok}/${tasks.length} 筆`);
+}
+
+
 loadConfig();
-loadTasks().then(()=>{ seedTasks(); renderAll(); });
+loadTasks();
 </script>
 </body>
 </html>
