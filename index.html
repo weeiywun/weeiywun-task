@@ -989,7 +989,7 @@ function renderCalendar() {
       return `<span class="cal-task-chip chip-${proj} ${t.done?'done':''}" draggable="true" data-taskid="${t.id}" ondragstart="calDragStart(event)" title="${esc(t.title)}" onclick="event.stopPropagation();editTask('${t.id}')">${esc(t.title)}</span>`;
     }).join('');
     const more = dayTasks.length > 3 ? `<span class="cal-more">+${dayTasks.length-3}</span>` : '';
-    html += `<div class="cal-day${isToday?' today':''}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}${more}</div>`;
+    html += `<div class="cal-day${isToday?' today':''}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')" onclick="calDayClick(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}${more}</div>`;
   }
   const remaining = (firstDay + daysInMonth) % 7;
   if(remaining > 0) for(let i=1; i<=7-remaining; i++) html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
@@ -1013,6 +1013,13 @@ async function calDrop(e, newDate) {
   renderCalendar();
   renderDashboard();
   toast(`已移至 ${newDate.slice(5).replace('-','/')}`, 'success');
+}
+
+function calDayClick(e, dateStr) {
+  // 只有點到格子本身（非任務chip）才開啟新增
+  if(e.target.classList.contains('cal-task-chip')) return;
+  if(e.target.classList.contains('cal-more')) return;
+  openAddTask(dateStr);
 }
 
 function renderDashboard() {
@@ -1193,9 +1200,10 @@ function renderRoadmapDraggable() {
 
 
 // ── CRUD ──
-function openAddTask() {
+function openAddTask(preDate) {
   document.getElementById('modal-title').textContent='新增任務';
-  ['f-id','f-title','f-due','f-notes'].forEach(id=>document.getElementById(id).value='');
+  ['f-id','f-title','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-due').value = preDate || '';
   document.getElementById('f-project').value='other';
   document.getElementById('f-priority').value='month';
   document.getElementById('task-modal').style.display='flex';
