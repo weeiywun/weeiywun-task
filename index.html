@@ -266,7 +266,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
         </div>
         <div style="margin-bottom:16px;padding:10px 20px;background:rgba(255,255,255,.15);border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px">
           <span style="font-size:13px;opacity:.7">✦</span>
-          <span id="daily-quote-text" style="font-size:12px;color:rgba(255,255,255,.85);font-style:italic;letter-spacing:.03em"></span>
+          <span id="daily-quote-text" style="font-size:12px;color:var(--ink);font-style:italic;letter-spacing:.03em"></span>
         </div>
         <div id="year-countdown" style="margin-bottom:14px;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:10px">
@@ -747,6 +747,13 @@ function loadConfig() {
   document.getElementById('setup-sql').textContent=SQL;
 }
 async function loadTasks() {
+  // 先顯示 localStorage 快取，讓頁面立刻有內容
+  const cached = JSON.parse(localStorage.getItem('wy_tasks')||'[]');
+  if(cached.length > 0) {
+    tasks = cached;
+    renderAll();
+  }
+  // 背景向 Supabase 拉最新資料
   if(supabaseURL&&supabaseKey) {
     try {
       const r=await fetch(`${supabaseURL}/rest/v1/tasks?order=created_at.desc`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});
@@ -764,10 +771,8 @@ async function loadTasks() {
       }
     } catch(e){}
   }
-  // Supabase 連不上 → 用 localStorage
-  tasks=JSON.parse(localStorage.getItem('wy_tasks')||'[]');
-  if(tasks.length===0) { seedTasks(); }
-  renderAll();
+  // Supabase 連不上 → 繼續用 localStorage
+  if(cached.length===0) { seedTasks(); renderAll(); }
 }
 function saveTasks() { localStorage.setItem('wy_tasks',JSON.stringify(tasks)); }
 async function persistTask(t) {
