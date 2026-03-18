@@ -32,6 +32,47 @@
   --p-other: #78716c; --p-other-bg: #f5f5f4;
   --p-monitor: #0891b2; --p-monitor-bg: #e0f7fa;
 }
+/* ─── Password Lock ─── */
+#lock-screen {
+  position:fixed; inset:0; background:var(--bg);
+  z-index:9999; display:flex; align-items:center; justify-content:center;
+}
+.lock-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:40px 36px; width:320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.12);
+  text-align:center;
+}
+.lock-logo {
+  width:56px; height:56px; background:var(--accent);
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  margin:0 auto 20px; font-family:'DM Serif Display',serif;
+  font-size:28px; color:#fff;
+}
+.lock-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--ink); margin-bottom:6px; }
+.lock-sub { font-size:12px; color:var(--ink-4); margin-bottom:28px; }
+.lock-input {
+  width:100%; padding:12px 16px; border:1.5px solid var(--border);
+  border-radius:var(--radius); font-family:inherit; font-size:18px;
+  text-align:center; letter-spacing:.3em; color:var(--ink);
+  background:var(--surface); outline:none; transition:border-color .15s;
+  margin-bottom:14px;
+}
+.lock-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
+.lock-input.error { border-color:var(--danger); box-shadow:0 0 0 3px var(--danger-light); animation: shake .3s; }
+.lock-btn {
+  width:100%; padding:12px; background:var(--accent); color:#fff;
+  border:none; border-radius:var(--radius); font-family:inherit;
+  font-size:14px; font-weight:600; cursor:pointer; transition:background .15s;
+}
+.lock-btn:hover { background:#2e5a4d; }
+.lock-err { font-size:12px; color:var(--danger); margin-top:10px; height:16px; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; padding-top: env(safe-area-inset-top); }
 .app { display: flex; min-height: 100vh; }
@@ -179,6 +220,36 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
   .sidebar-toggle.open { left: 180px; }
 }
 
+
+/* ─── Calendar ─── */
+.cal-wrap { margin-bottom: 24px; }
+.cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.cal-title { font-size:14px; font-weight:600; color:var(--ink); }
+.cal-nav { display:flex; gap:6px; }
+.cal-nav button { padding:4px 10px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; font-family:inherit; color:var(--ink-3); cursor:pointer; transition:all .15s; }
+.cal-nav button:hover { background:var(--surface-2); color:var(--ink); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.cal-dow { background:var(--surface-2); text-align:center; padding:7px 0; font-size:11px; font-weight:600; color:var(--ink-3); letter-spacing:.04em; }
+.cal-day { background:var(--surface); min-height:80px; padding:4px 5px; position:relative; vertical-align:top; transition:background .12s; overflow:hidden; box-sizing:border-box; width:100%; }
+.cal-day:hover { background:#faf8f5; }
+.cal-day.other-month { background:var(--surface-2); opacity:.6; }
+.cal-day.today { background:var(--accent-light); }
+.cal-day.today .cal-day-num { color:var(--accent); font-weight:700; }
+.cal-day.drag-over { background:var(--accent-light) !important; outline:2px dashed var(--accent); outline-offset:-2px; }
+.cal-day-num { font-size:11px; color:var(--ink-3); margin-bottom:3px; }
+.cal-task-chip { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; padding:2px 5px; border-radius:3px; font-size:10px; font-weight:500; margin-bottom:2px; cursor:grab; line-height:1.4; max-width:100%; word-break:break-all; transition:opacity .12s, transform .12s; }
+.cal-task-chip:active { cursor:grabbing; opacity:.6; transform:scale(.97); }
+.cal-task-chip.done { opacity:.4; text-decoration:line-through; }
+.cal-more { font-size:10px; color:var(--ink-4); padding:1px 4px; cursor:pointer; }
+.cal-more:hover { color:var(--accent); }
+.chip-line { background:#d1fae5; color:#065f46; }
+.chip-web-product { background:#e0f2fe; color:#075985; }
+.chip-web-seo { background:#fef3c7; color:#92400e; }
+.chip-sys { background:#ede9fe; color:#5b21b6; }
+.chip-brand { background:#fce7f3; color:#9d174d; }
+.chip-monitor { background:#e0f7fa; color:#0e7490; }
+.chip-other { background:#f5f5f4; color:#44403c; }
+
 .toast { position: fixed; bottom: 22px; right: 22px; background: var(--ink); color: #fff; padding: 11px 17px; border-radius: var(--radius); font-size: 13px; z-index: 999; box-shadow: var(--shadow-lg); transform: translateY(20px); opacity: 0; transition: all .25s; }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--accent); }
@@ -209,6 +280,21 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 </style>
 </head>
 <body>
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">惟</div>
+    <div class="lock-title">惟元任務中心</div>
+    <div class="lock-sub">請輸入密碼以繼續</div>
+    <input class="lock-input" id="lock-input" type="password"
+      maxlength="10" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')checkPassword()"
+      oninput="document.getElementById('lock-input').classList.remove('error')"
+      autofocus>
+    <button class="lock-btn" onclick="checkPassword()">進入</button>
+    <div class="lock-err" id="lock-err"></div>
+  </div>
+</div>
+
 <div class="app">
   <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="收合側欄">◀</button>
   <nav class="sidebar" id="sidebar">
@@ -221,7 +307,8 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
     </div>
     <div class="sidebar-nav">
       <div class="nav-label">主選單</div>
-      <div class="nav-item active" onclick="switchView('dashboard')"><span class="icon">📅</span>當週任務</div>
+      <div class="nav-item active" onclick="switchView('dashboard')" id="nav-home"><span class="icon">🏠</span>首頁</div>
+      <div class="nav-item" onclick="switchView('dashboard')"><span class="icon">📅</span>當週任務</div>
       <div class="nav-item" onclick="switchView('roadmap')"><span class="icon">🗺</span>三個月路線圖</div>
       <div class="nav-item" onclick="switchView('tasks')"><span class="icon">📋</span>全部任務<span class="nav-badge" id="badge-overdue" style="display:none">0</span></div>
       <div class="nav-item" onclick="switchView('kanban')"><span class="icon">🗂</span>看板視圖</div>
@@ -291,6 +378,20 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           <div class="stat-card"><div class="stat-num" id="stat-week">0</div><div class="stat-label">🔴 本週必做</div></div>
           <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">📌 進行中總數</div></div>
         </div>
+
+        <!-- Monthly Calendar -->
+        <div class="cal-wrap card" style="padding:14px 16px;margin-bottom:24px">
+          <div class="cal-header">
+            <div class="cal-title" id="cal-title"></div>
+            <div class="cal-nav">
+              <button onclick="calPrev()">‹</button>
+              <button onclick="calToday()">今天</button>
+              <button onclick="calNext()">›</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+
         <div class="section">
           <div class="section-header"><div><div class="section-title">本週需要關注</div><div class="section-sub">逾期 + 本週到期</div></div></div>
           <div class="card"><div id="today-task-list"></div></div>
@@ -738,6 +839,43 @@ function autoResetRecurring() {
   }
 }
 
+
+// ── Password Lock ──────────────────────────────────
+const LOCK_KEY = 'wy_unlocked_until';
+const LOCK_HASH = '53251954'; // 密碼
+
+function checkPassword() {
+  const input = document.getElementById('lock-input');
+  const errEl = document.getElementById('lock-err');
+  if(input.value === LOCK_HASH) {
+    // 記錄解鎖時效：今天結束（23:59:59）
+    const expiry = new Date();
+    expiry.setHours(23, 59, 59, 999);
+    localStorage.setItem(LOCK_KEY, expiry.getTime().toString());
+    document.getElementById('lock-screen').style.display = 'none';
+  } else {
+    input.classList.add('error');
+    errEl.textContent = '密碼錯誤，請再試一次';
+    input.value = '';
+    setTimeout(() => { errEl.textContent = ''; }, 3000);
+  }
+}
+
+function checkLock() {
+  const expiry = parseInt(localStorage.getItem(LOCK_KEY) || '0');
+  if(Date.now() < expiry) {
+    // 今天已解鎖過，直接隱藏鎖定畫面
+    document.getElementById('lock-screen').style.display = 'none';
+    return true;
+  }
+  // 顯示鎖定畫面，讓 Supabase 在背景載入
+  setTimeout(() => {
+    const input = document.getElementById('lock-input');
+    if(input) input.focus();
+  }, 100);
+  return false;
+}
+
 function loadConfig() {
   supabaseURL=localStorage.getItem('sb_url')||'https://lkryumerfbqfwfyxegve.supabase.co';
   supabaseKey=localStorage.getItem('sb_key')||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrcnl1bWVyZmJxZndmeXhlZ3ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjQxMDgsImV4cCI6MjA4OTIwMDEwOH0.AA0aqoYqln4e-uoMoqQpk_BfqexA6ncHOLi9SDOne34';
@@ -747,32 +885,35 @@ function loadConfig() {
   document.getElementById('setup-sql').textContent=SQL;
 }
 async function loadTasks() {
-  // 先顯示 localStorage 快取，讓頁面立刻有內容
-  const cached = JSON.parse(localStorage.getItem('wy_tasks')||'[]');
-  if(cached.length > 0) {
-    tasks = cached;
-    renderAll();
-  }
-  // 背景向 Supabase 拉最新資料
-  if(supabaseURL&&supabaseKey) {
+  if(supabaseURL && supabaseKey) {
     try {
-      const r=await fetch(`${supabaseURL}/rest/v1/tasks?order=created_at.desc`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});
-      if(r.ok){
-        const data=await r.json();
-        if(data.length>0){
-          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done,completed_at:t.completed_at||null}));
-          saveTasks();
+      const r = await fetch(
+        `${supabaseURL}/rest/v1/tasks?order=created_at.desc`,
+        { headers:{ apikey:supabaseKey, Authorization:`Bearer ${supabaseKey}` } }
+      );
+      if(r.ok) {
+        const data = await r.json();
+        if(data.length > 0) {
+          tasks = data.map(t => ({
+            id:t.id, title:t.title, project:t.project,
+            priority:t.priority, due:t.due_date,
+            notes:t.notes, done:t.done,
+            completed_at:t.completed_at||null
+          }));
+          if(tasks.length > 0) localStorage.setItem('wy_tasks', JSON.stringify(tasks));
           autoResetRecurring();
-          renderAll(); return;
+          renderAll();
+          return;
         }
-        // Supabase 是空的 → 用預設任務資料初始化
         await seedAndPush();
-        renderAll(); return;
+        renderAll();
+        return;
       }
-    } catch(e){}
+    } catch(e) { console.warn('Supabase 失敗，退回快取', e); }
   }
-  // Supabase 連不上 → 繼續用 localStorage
-  if(cached.length===0) { seedTasks(); renderAll(); }
+  tasks = JSON.parse(localStorage.getItem('wy_tasks') || '[]');
+  if(tasks.length === 0) { seedTasks(); }
+  renderAll();
 }
 function saveTasks() { localStorage.setItem('wy_tasks',JSON.stringify(tasks)); }
 async function persistTask(t) {
@@ -788,9 +929,77 @@ async function deleteTaskRemote(id) {
 // ── Render ──
 function renderAll() { renderDashboard(); renderTaskList(); renderKanban(); renderRoadmap(); updateBadges(); refreshPreview(); }
 
+
+// ── Monthly Calendar ─────────────────────────────────
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function calPrev()  { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext()  { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function calToday() { calYear=new Date().getFullYear(); calMonth=new Date().getMonth(); renderCalendar(); }
+
+function renderCalendar() {
+  const el = document.getElementById('cal-grid');
+  const titleEl = document.getElementById('cal-title');
+  if(!el) return;
+  const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const DOWS   = ['日','一','二','三','四','五','六'];
+  titleEl.textContent = `${calYear} 年 ${MONTHS[calMonth]}`;
+  const firstDay    = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+  const todayStr    = new Date().toISOString().slice(0,10);
+  const tasksByDate = {};
+  tasks.forEach(t => {
+    if(!t.due) return;
+    if(!tasksByDate[t.due]) tasksByDate[t.due] = [];
+    tasksByDate[t.due].push(t);
+  });
+  let html = DOWS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0; i<firstDay; i++){
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${daysInPrev-firstDay+i+1}</div></div>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const mm = String(calMonth+1).padStart(2,'0');
+    const dd = String(d).padStart(2,'0');
+    const dateStr = `${calYear}-${mm}-${dd}`;
+    const isToday = dateStr === todayStr;
+    const dayTasks = tasksByDate[dateStr] || [];
+    const chips = dayTasks.slice(0,3).map(t => {
+      const proj = t.project.replace(/[^a-z-]/g,'');
+      return `<span class="cal-task-chip chip-${proj} ${t.done?'done':''}" draggable="true" data-taskid="${t.id}" ondragstart="calDragStart(event)" title="${esc(t.title)}" onclick="event.stopPropagation();editTask('${t.id}')">${esc(t.title)}</span>`;
+    }).join('');
+    const more = dayTasks.length > 3 ? `<span class="cal-more">+${dayTasks.length-3}</span>` : '';
+    html += `<div class="cal-day${isToday?' today':''}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}${more}</div>`;
+  }
+  const remaining = (firstDay + daysInMonth) % 7;
+  if(remaining > 0) for(let i=1; i<=7-remaining; i++) html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  el.innerHTML = html;
+}
+
+function calDragStart(e) {
+  e.dataTransfer.setData('calTaskId', e.currentTarget.dataset.taskid);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+async function calDrop(e, newDate) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const taskId = e.dataTransfer.getData('calTaskId');
+  if(!taskId || !newDate) return;
+  const t = tasks.find(x => x.id === taskId);
+  if(!t) return;
+  t.due = newDate;
+  await persistTask(t);
+  renderCalendar();
+  renderDashboard();
+  toast(`已移至 ${newDate.slice(5).replace('-','/')}`, 'success');
+}
+
 function renderDashboard() {
   showDailyQuote();
   updateYearCountdown();
+  renderCalendar();
   const now=new Date();
   // 本週範圍：今天到 7 天後
   const weekStart = today();
@@ -1008,6 +1217,7 @@ function switchView(v) {
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
   document.getElementById(`view-${v}`).classList.add('active');
   document.getElementById('topbar-title').textContent=VIEW_TITLES[v]||v;
+  if(v==='dashboard'){ const nh=document.getElementById('nav-home'); if(nh) nh.classList.add('active'); }
   if(v==='tasks') renderTaskList();
   if(v==='kanban') renderKanban();
   if(v==='roadmap') renderRoadmapDraggable();
@@ -1166,6 +1376,7 @@ async function seedAndPush() {
 
 loadConfig();
 initSidebar();
+checkLock();
 loadTasks();
 setInterval(updateYearCountdown, 60000);
 </script>
