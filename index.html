@@ -226,14 +226,16 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .cal-wrap { margin-bottom: 24px; }
 .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
 .cal-title { font-size:14px; font-weight:600; color:var(--ink); }
-.cal-nav { display:flex; gap:6px; }
-.cal-nav button { padding:4px 10px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; font-family:inherit; color:var(--ink-3); cursor:pointer; transition:all .15s; }
-.cal-nav button:hover { background:var(--surface-2); color:var(--ink); }
+.cal-nav-btn { padding:4px 10px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; font-family:inherit; color:var(--ink-3); cursor:pointer; transition:all .15s; }
+.cal-nav-btn:hover { background:var(--surface-2); color:var(--ink); }
+.cal-month-block { margin-bottom:20px; }
+.cal-month-title { font-size:12px; font-weight:600; color:var(--ink-3); letter-spacing:.06em; text-transform:uppercase; padding:10px 0 8px; border-bottom:1px solid var(--border); margin-bottom:1px; }
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
 .cal-dow { background:var(--surface-2); text-align:center; padding:7px 0; font-size:11px; font-weight:600; color:var(--ink-3); letter-spacing:.04em; }
 .cal-day { background:var(--surface); min-height:80px; padding:4px 5px; position:relative; vertical-align:top; transition:background .12s; overflow:hidden; box-sizing:border-box; width:100%; }
 .cal-day:hover { background:#faf8f5; }
-.cal-day.other-month { background:var(--surface-2); opacity:.6; }
+.cal-day.other-month { background:var(--surface-2); opacity:.7; }
+.cal-day.other-month:has(.cal-task-chip) { opacity:.85; }
 .cal-day.today { background:var(--accent-light); }
 .cal-day.today .cal-day-num { color:var(--accent); font-weight:700; }
 .cal-day.drag-over { background:var(--accent-light) !important; outline:2px dashed var(--accent); outline-offset:-2px; }
@@ -250,6 +252,42 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .chip-brand { background:#fce7f3; color:#9d174d; }
 .chip-monitor { background:#e0f7fa; color:#0e7490; }
 .chip-other { background:#f5f5f4; color:#44403c; }
+
+
+/* ─── Completed Page ─── */
+.proj-progress-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.proj-progress-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.proj-progress-label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.proj-progress-count { font-size: 12px; color: var(--ink-3); }
+.prog-bar-bg {
+  height: 8px; background: var(--surface-2); border-radius: 4px;
+  overflow: hidden; border: 1px solid var(--border); margin-bottom: 12px;
+}
+.prog-bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width .6s ease;
+}
+.completed-task-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--ink-2);
+}
+.completed-task-item:last-child { border-bottom: none; }
+.completed-check {
+  width: 16px; height: 16px; min-width: 16px;
+  background: var(--accent); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; margin-top: 1px; flex-shrink: 0;
+}
+.completed-task-title { text-decoration: line-through; color: var(--ink-3); flex: 1; }
+.completed-empty { font-size: 12px; color: var(--ink-4); padding: 8px 0; font-style: italic; }
 
 .toast { position: fixed; bottom: 22px; right: 22px; background: var(--ink); color: #fff; padding: 11px 17px; border-radius: var(--radius); font-size: 13px; z-index: 999; box-shadow: var(--shadow-lg); transform: translateY(20px); opacity: 0; transition: all .25s; }
 .toast.show { transform: translateY(0); opacity: 1; }
@@ -321,6 +359,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="nav-item" onclick="switchView('roadmap')"><span class="icon">🗺</span>三個月路線圖</div>
       <div class="nav-item" onclick="switchView('tasks')"><span class="icon">📋</span>全部任務<span class="nav-badge" id="badge-overdue" style="display:none">0</span></div>
       <div class="nav-item" onclick="switchView('kanban')"><span class="icon">🗂</span>看板視圖</div>
+      <div class="nav-item" onclick="switchView('completed')"><span class="icon">✅</span>已完成任務</div>
       <div class="nav-label">專案篩選</div>
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','line')"><span class="icon" style="color:#059669">●</span>LINE Bot</div>
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','web-product')"><span class="icon" style="color:#0284c7">●</span>商品視覺</div>
@@ -387,17 +426,17 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">📌 進行中總數</div></div>
         </div>
 
-        <!-- Monthly Calendar -->
-        <div class="cal-wrap card" style="padding:14px 16px;margin-bottom:24px">
-          <div class="cal-header">
-            <div class="cal-title" id="cal-title"></div>
-            <div class="cal-nav">
-              <button onclick="calPrev()">‹</button>
-              <button onclick="calToday()">今天</button>
-              <button onclick="calNext()">›</button>
+        <!-- Scroll Calendar -->
+        <div class="card" style="margin-bottom:24px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border)">
+            <div style="font-size:14px;font-weight:600;color:var(--ink)">月曆</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button class="cal-nav-btn" onclick="calAddMonths(-1)">‹ 上個月</button>
+              <button class="cal-nav-btn" onclick="calScrollToday()">今天</button>
+              <button class="cal-nav-btn" onclick="calAddMonths(1)">下個月 ›</button>
             </div>
           </div>
-          <div class="cal-grid" id="cal-grid"></div>
+          <div id="cal-scroll-container" style="max-height:520px;overflow-y:auto;padding:0 16px 16px"></div>
         </div>
 
         <div class="section">
@@ -456,6 +495,19 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
             <div class="kanban-col-title"><span style="background:var(--ink-4);width:8px;height:8px;border-radius:50%;display:inline-block"></span>長期規劃</div>
             <div id="kanban-long"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- Completed -->
+      <div class="view" id="view-completed">
+        <div class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">已完成任務</div>
+              <div class="section-sub">各專案完成進度一覽</div>
+            </div>
+          </div>
+          <div id="completed-body"></div>
         </div>
       </div>
 
@@ -534,6 +586,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-secondary" id="btn-duplicate" onclick="duplicateTask()" style="display:none">📋 複製</button>
       <button class="btn btn-primary" onclick="saveTask()">儲存任務</button>
     </div>
   </div>
@@ -763,6 +816,58 @@ function showDailyQuote() {
 }
 
 
+
+// ── Completed Page ────────────────────────────────────
+function renderCompleted() {
+  const body = document.getElementById('completed-body');
+  if(!body) return;
+
+  const PROJ_ORDER = ['line','web-product','web-seo','brand','sys','monitor','other'];
+  const PROJ_COLORS = {
+    'line':'#059669','web-product':'#0284c7','web-seo':'#d97706',
+    'sys':'#7c3aed','brand':'#db2777','monitor':'#0891b2','other':'#78716c'
+  };
+
+  let html = '';
+  PROJ_ORDER.forEach(pk => {
+    const pm = PROJECT_MAP[pk] || PROJECT_MAP.other;
+    const all      = tasks.filter(t => t.project === pk);
+    const done     = all.filter(t => t.done);
+    const total    = all.length;
+    if(total === 0) return;
+
+    const pct   = total > 0 ? Math.round((done.length / total) * 100) : 0;
+    const color = PROJ_COLORS[pk] || '#78716c';
+
+    html += `<div class="proj-progress-card">
+      <div class="proj-progress-header">
+        <span class="proj-progress-label">
+          <span class="tag ${pm.cls}" style="margin-right:8px">${pm.label}</span>
+        </span>
+        <span class="proj-progress-count">${done.length} / ${total} 件完成・${pct}%</span>
+      </div>
+      <div class="prog-bar-bg">
+        <div class="prog-bar-fill" style="width:${pct}%;background:${color}"></div>
+      </div>`;
+
+    if(done.length > 0) {
+      html += done.map(t => `
+        <div class="completed-task-item">
+          <div class="completed-check">✓</div>
+          <div class="completed-task-title">${esc(t.title)}</div>
+        </div>`).join('');
+    } else {
+      html += `<div class="completed-empty">尚無完成的任務</div>`;
+    }
+    html += `</div>`;
+  });
+
+  if(!html) {
+    html = `<div class="empty-state"><div class="icon">🎯</div><div class="title">還沒有完成的任務</div><div class="sub">完成第一個任務後就會在這裡出現！</div></div>`;
+  }
+  body.innerHTML = html;
+}
+
 // ── Sidebar Toggle ──────────────────────────────────
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -948,57 +1053,116 @@ async function deleteTaskRemote(id) {
 function renderAll() { renderDashboard(); renderTaskList(); renderKanban(); renderRoadmap(); updateBadges(); refreshPreview(); }
 
 
-// ── Monthly Calendar ─────────────────────────────────
-let calYear  = new Date().getFullYear();
-let calMonth = new Date().getMonth();
+// ── Scroll Calendar ───────────────────────────────────
+let calStartMonth = new Date().getMonth();
+let calStartYear  = new Date().getFullYear();
+const CAL_MONTHS_SHOW = 4; // 一次顯示幾個月
 
-function calPrev()  { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
-function calNext()  { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
-function calToday() { calYear=new Date().getFullYear(); calMonth=new Date().getMonth(); renderCalendar(); }
+function calAddMonths(delta) {
+  calStartMonth += delta;
+  if(calStartMonth > 11) { calStartMonth -= 12; calStartYear++; }
+  if(calStartMonth < 0)  { calStartMonth += 12; calStartYear--; }
+  renderCalendar();
+  // 往前的話滾到頂，往後的話滾到尾
+  const c = document.getElementById('cal-scroll-container');
+  if(c) c.scrollTop = delta > 0 ? c.scrollHeight : 0;
+}
+
+function calScrollToday() {
+  calStartMonth = new Date().getMonth();
+  calStartYear  = new Date().getFullYear();
+  renderCalendar();
+  // 第一個月就是今天所在月份，滾到頂
+  const c = document.getElementById('cal-scroll-container');
+  if(c) c.scrollTop = 0;
+}
+
+// 原本的 calPrev / calNext / calToday 保留相容性
+function calPrev()  { calAddMonths(-1); }
+function calNext()  { calAddMonths(1); }
+function calToday() { calScrollToday(); }
 
 function renderCalendar() {
-  const el = document.getElementById('cal-grid');
-  const titleEl = document.getElementById('cal-title');
-  if(!el) return;
+  const container = document.getElementById('cal-scroll-container');
+  if(!container) return;
+
   const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   const DOWS   = ['日','一','二','三','四','五','六'];
-  titleEl.textContent = `${calYear} 年 ${MONTHS[calMonth]}`;
-  const firstDay    = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
-  const todayStr    = new Date().toISOString().slice(0,10);
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  // Group tasks by due date
   const tasksByDate = {};
   tasks.forEach(t => {
     if(!t.due) return;
     if(!tasksByDate[t.due]) tasksByDate[t.due] = [];
     tasksByDate[t.due].push(t);
   });
-  let html = DOWS.map(d => `<div class="cal-dow">${d}</div>`).join('');
-  for(let i=0; i<firstDay; i++){
-    html += `<div class="cal-day other-month"><div class="cal-day-num">${daysInPrev-firstDay+i+1}</div></div>`;
+
+  let html = '';
+
+  for(let mi = 0; mi < CAL_MONTHS_SHOW; mi++) {
+    let yr = calStartYear;
+    let mo = calStartMonth + mi;
+    if(mo > 11) { mo -= 12; yr++; }
+
+    const firstDay    = new Date(yr, mo, 1).getDay();
+    const daysInMonth = new Date(yr, mo+1, 0).getDate();
+    const daysInPrev  = new Date(yr, mo, 0).getDate();
+
+    html += `<div class="cal-month-block" id="cal-month-${yr}-${mo}">`;
+    html += `<div class="cal-month-title">${yr} 年 ${MONTHS[mo]}</div>`;
+    html += `<div class="cal-grid">`;
+
+    // DOW headers
+    html += DOWS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+    // Prev month padding
+    for(let i = 0; i < firstDay; i++) {
+      const d = daysInPrev - firstDay + i + 1;
+      const pyr = mo === 0 ? yr-1 : yr;
+      const pmo = mo === 0 ? 12 : mo;
+      const dateStr = `${pyr}-${String(pmo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayTasks = tasksByDate[dateStr] || [];
+      const chips = dayTasks.slice(0,2).map(t => calChip(t)).join('');
+      html += `<div class="cal-day other-month" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')" onclick="calDayClick(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}</div>`;
+    }
+
+    // Current month
+    for(let d = 1; d <= daysInMonth; d++) {
+      const mm = String(mo+1).padStart(2,'0');
+      const dd = String(d).padStart(2,'0');
+      const dateStr = `${yr}-${mm}-${dd}`;
+      const isToday = dateStr === todayStr;
+      const dayTasks = tasksByDate[dateStr] || [];
+      const chips = dayTasks.slice(0,3).map(t => calChip(t)).join('');
+      const more = dayTasks.length > 3 ? `<span class="cal-more">+${dayTasks.length-3}</span>` : '';
+      html += `<div class="cal-day${isToday?' today':''}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')" onclick="calDayClick(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}${more}</div>`;
+    }
+
+    // Next month padding
+    const remaining = (firstDay + daysInMonth) % 7;
+    if(remaining > 0) {
+      const nyr = mo === 11 ? yr+1 : yr;
+      const nmo = mo === 11 ? 1 : mo+2;
+      for(let i = 1; i <= 7-remaining; i++) {
+        const dateStr = `${nyr}-${String(nmo).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        const dayTasks = tasksByDate[dateStr] || [];
+        const chips = dayTasks.slice(0,2).map(t => calChip(t)).join('');
+        html += `<div class="cal-day other-month" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')" onclick="calDayClick(event,'${dateStr}')"><div class="cal-day-num">${i}</div>${chips}</div>`;
+      }
+    }
+
+    html += `</div></div>`; // close cal-grid + cal-month-block
   }
-  for(let d=1; d<=daysInMonth; d++){
-    const mm = String(calMonth+1).padStart(2,'0');
-    const dd = String(d).padStart(2,'0');
-    const dateStr = `${calYear}-${mm}-${dd}`;
-    const isToday = dateStr === todayStr;
-    const dayTasks = tasksByDate[dateStr] || [];
-    const chips = dayTasks.slice(0,3).map(t => {
-      const proj = t.project.replace(/[^a-z-]/g,'');
-      return `<span class="cal-task-chip chip-${proj} ${t.done?'done':''}" draggable="true" data-taskid="${t.id}" ondragstart="calDragStart(event)" title="${esc(t.title)}" onclick="event.stopPropagation();editTask('${t.id}')">${esc(t.title)}</span>`;
-    }).join('');
-    const more = dayTasks.length > 3 ? `<span class="cal-more">+${dayTasks.length-3}</span>` : '';
-    html += `<div class="cal-day${isToday?' today':''}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="calDrop(event,'${dateStr}')" onclick="calDayClick(event,'${dateStr}')"><div class="cal-day-num">${d}</div>${chips}${more}</div>`;
-  }
-  const remaining = (firstDay + daysInMonth) % 7;
-  if(remaining > 0) for(let i=1; i<=7-remaining; i++) html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
-  el.innerHTML = html;
+
+  container.innerHTML = html;
 }
 
-function calDragStart(e) {
-  e.dataTransfer.setData('calTaskId', e.currentTarget.dataset.taskid);
-  e.dataTransfer.effectAllowed = 'move';
+function calChip(t) {
+  const proj = t.project.replace(/[^a-z-]/g,'');
+  return `<span class="cal-task-chip chip-${proj} ${t.done?'done':''}" draggable="true" data-taskid="${t.id}" ondragstart="calDragStart(event)" title="${esc(t.title)}" onclick="event.stopPropagation();editTask('${t.id}')">${esc(t.title)}</span>`;
 }
+
 
 async function calDrop(e, newDate) {
   e.preventDefault();
@@ -1205,6 +1369,7 @@ function openAddTask(preDate) {
   document.getElementById('f-due').value = preDate || '';
   document.getElementById('f-project').value='other';
   document.getElementById('f-priority').value='month';
+  document.getElementById('btn-duplicate').style.display='none';
   document.getElementById('task-modal').style.display='flex';
   setTimeout(()=>document.getElementById('f-title').focus(),50);
 }
@@ -1217,6 +1382,7 @@ function editTask(id) {
   document.getElementById('f-priority').value=t.priority;
   document.getElementById('f-due').value=t.due||'';
   document.getElementById('f-notes').value=t.notes||'';
+  document.getElementById('btn-duplicate').style.display='inline-flex';
   document.getElementById('task-modal').style.display='flex';
 }
 function closeModal() { document.getElementById('task-modal').style.display='none'; }
@@ -1229,6 +1395,30 @@ function saveTask() {
   if(idx>=0){t.done=tasks[idx].done;tasks[idx]=t;}else tasks.unshift(t);
   persistTask(t); closeModal(); renderAll(); toast('已儲存','success');
 }
+
+function duplicateTask() {
+  const srcId = document.getElementById('f-id').value;
+  const src = tasks.find(x => x.id === srcId);
+  if(!src) return;
+  // 建立複本，清空 id 和 done 狀態
+  const newId = Date.now().toString(36);
+  const copy = {
+    ...src,
+    id: newId,
+    title: src.title + '（複本）',
+    done: false,
+    completed_at: null,
+    due: null // 截止日期清空，讓使用者重新設定
+  };
+  tasks.unshift(copy);
+  persistTask(copy);
+  closeModal();
+  renderAll();
+  toast('📋 已複製，可在全部任務中找到', 'success');
+  // 立刻開啟複本的編輯視窗，方便修改
+  setTimeout(() => editTask(newId), 300);
+}
+
 function toggleDone(id) {
   const t=tasks.find(x=>x.id===id); if(!t) return;
   t.done=!t.done;
@@ -1242,7 +1432,7 @@ function deleteTask(id) {
 }
 
 // ── Nav ──
-const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
+const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',completed:'已完成任務',settings:'設定'};
 function switchView(v) {
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -1252,6 +1442,7 @@ function switchView(v) {
   if(v==='tasks') renderTaskList();
   if(v==='kanban') renderKanban();
   if(v==='roadmap') renderRoadmapDraggable();
+  if(v==='completed') renderCompleted();
   if(v==='settings'){loadConfig();renderGuide();}
 }
 function setFilter(type,value) {
