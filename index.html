@@ -2,8 +2,17 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>惟元 — 專案進度追蹤</title>
+<meta name="description" content="惟元國際藥業 專案進度追蹤系統">
+<meta name="theme-color" content="#3b6e5e">
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="惟元任務">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjM2I2ZTVlIi8+PHRleHQgeD0iOTAiIHk9IjExNSIgZm9udC1mYW1pbHk9InNlcmlmIiBmb250LXNpemU9IjkwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7mgqU8L3RleHQ+PC9zdmc+">
+<!-- Android PWA manifest (inline) -->
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E6%83%9F%E5%85%83%20%E2%80%94%20%E5%B0%88%E6%A1%88%E9%80%B2%E5%BA%A6%E8%BF%BD%E8%B9%A4%22%2C%22short_name%22%3A%22%E6%83%9F%E5%85%83%E4%BB%BB%E5%8B%99%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8f5f0%22%2C%22theme_color%22%3A%22%233b6e5e%22%2C%22orientation%22%3A%22portrait%22%7D">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -13,17 +22,20 @@
   --danger: #b94040; --danger-light: #fdeaea; --warn: #8a6b1a; --warn-light: #fdf6e3;
   --radius: 10px; --radius-sm: 6px;
   --shadow: 0 2px 12px rgba(0,0,0,.07); --shadow-lg: 0 8px 32px rgba(0,0,0,.1);
-  --p-line: #00b900; --p-line-bg: #e8fbe8;
-  --p-web-product: #3b6e5e; --p-web-product-bg: #e8f3ef;
-  --p-web-seo: #1a6896; --p-web-seo-bg: #e6f2fa;
-  --p-sys: #5a4abf; --p-sys-bg: #eeecfb;
-  --p-brand: #9b4e7e; --p-brand-bg: #f9edf5;
-  --p-other: #8a6b1a; --p-other-bg: #fdf6e3;
+  --p-line: #059669; --p-line-bg: #d1fae5;
+  --p-web-product: #0284c7; --p-web-product-bg: #e0f2fe;
+  --p-web-seo: #d97706; --p-web-seo-bg: #fef3c7;
+  --p-sys: #7c3aed; --p-sys-bg: #ede9fe;
+  --p-brand: #db2777; --p-brand-bg: #fce7f3;
+  --p-other: #78716c; --p-other-bg: #f5f5f4;
+  --p-monitor: #0891b2; --p-monitor-bg: #e0f7fa;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; padding-top: env(safe-area-inset-top); }
 .app { display: flex; min-height: 100vh; }
-.sidebar { width: 224px; min-width: 224px; background: #f0ece4; color: var(--ink-2); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+.sidebar { width: 224px; min-width: 224px; background: #f0ece4; color: var(--ink-2); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: width .25s ease, min-width .25s ease; overflow: hidden; }
+.sidebar.collapsed { width: 0; min-width: 0; }
+.main { transition: margin-left .25s ease; }
 .sidebar-logo { padding: 24px 20px 18px; border-bottom: 1px solid var(--border); }
 .brand { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--ink); }
 .sub { font-size: 11px; color: var(--ink-4); margin-top: 2px; }
@@ -81,12 +93,13 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .12s; }
 .task-item:hover .task-actions { opacity: 1; }
 .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
-.tag-project-line { background: var(--p-line-bg); color: #007a00; }
-.tag-project-web-product { background: var(--p-web-product-bg); color: var(--p-web-product); }
-.tag-project-web-seo { background: var(--p-web-seo-bg); color: var(--p-web-seo); }
-.tag-project-sys { background: var(--p-sys-bg); color: var(--p-sys); }
-.tag-project-brand { background: var(--p-brand-bg); color: var(--p-brand); }
-.tag-project-other { background: var(--p-other-bg); color: var(--p-other); }
+.tag-project-line { background: var(--p-line-bg); color: #065f46; }
+.tag-project-web-product { background: var(--p-web-product-bg); color: #075985; }
+.tag-project-web-seo { background: var(--p-web-seo-bg); color: #92400e; }
+.tag-project-sys { background: var(--p-sys-bg); color: #5b21b6; }
+.tag-project-brand { background: var(--p-brand-bg); color: #9d174d; }
+.tag-project-other { background: var(--p-other-bg); color: #44403c; }
+.tag-project-monitor { background: var(--p-monitor-bg); color: #0e7490; }
 .priority-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .priority-week { background: var(--danger); }
 .priority-month { background: var(--accent-2); }
@@ -138,27 +151,37 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .empty-state { padding: 44px 24px; text-align: center; color: var(--ink-4); }
 .empty-state .icon { font-size: 34px; margin-bottom: 10px; }
 .empty-state .title { font-size: 14px; font-weight: 500; color: var(--ink-3); margin-bottom: 5px; }
+/* ── sidebar toggle ── */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: 180px;
+  z-index: 200;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  color: var(--ink-3);
+  transition: left .25s ease, background .15s, color .15s;
+}
+.sidebar-toggle:hover { background: var(--accent-light); color: var(--accent); }
+.sidebar-toggle.collapsed { left: 8px; }
+@media (max-width: 768px) {
+  .sidebar { width: 0; min-width: 0; }
+  .main { margin-left: 0 !important; }
+  .sidebar-toggle { left: 8px; }
+  .sidebar-toggle.open { left: 180px; }
+}
+
 .toast { position: fixed; bottom: 22px; right: 22px; background: var(--ink); color: #fff; padding: 11px 17px; border-radius: var(--radius); font-size: 13px; z-index: 999; box-shadow: var(--shadow-lg); transform: translateY(20px); opacity: 0; transition: all .25s; }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--accent); }
 .toast.error { background: var(--danger); }
 
-/* ─── Gantt ─── */
-.gantt-wrap { overflow-x: auto; padding-bottom: 8px; }
-.gantt-table { min-width: 900px; width: 100%; border-collapse: collapse; }
-.gantt-label-col { width: 180px; min-width: 160px; }
-.gantt-row-head { background: var(--surface-2); }
-.gantt-row-head th { padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--ink-3); text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
-.gantt-row-head th.gantt-label-col { text-align: left; }
-.gantt-task-row td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0; height: 36px; position: relative; }
-.gantt-task-row td.gantt-label-cell { padding: 0 10px; }
-.gantt-task-label { font-size: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; display: flex; align-items: center; gap: 6px; height: 36px; }
-.gantt-bar { position: absolute; top: 7px; height: 22px; border-radius: 4px; min-width: 6px; opacity: .85; display: flex; align-items: center; padding: 0 6px; font-size: 10px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; cursor: default; transition: opacity .15s; }
-.gantt-bar:hover { opacity: 1; }
-.gantt-bar.no-due { width: 10px; border-radius: 5px; padding: 0; }
-.gantt-today-line { position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--danger); opacity: .6; z-index: 2; pointer-events: none; }
-.gantt-month-sep { border-right: 1.5px solid var(--border) !important; }
-.gantt-section-row td { background: var(--surface-2); padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-4); border-bottom: 1px solid var(--border); }
 /* ─── Roadmap drag ─── */
 .rm-task { cursor: grab; user-select: none; }
 .rm-task:active { cursor: grabbing; opacity: .7; }
@@ -178,16 +201,18 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .rm-task.web-seo { border-left-color: var(--p-web-seo); }
 .rm-task.brand { border-left-color: var(--p-brand); }
 .rm-task.sys { border-left-color: var(--p-sys); }
+.rm-task.monitor { border-left-color: var(--p-monitor); }
 .rm-task.milestone { background: #e8f3ef; border-left-color: var(--accent); font-weight: 600; }
 .rm-task.done { opacity: .45; text-decoration: line-through; }
 </style>
 </head>
 <body>
 <div class="app">
-  <nav class="sidebar">
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="收合側欄">◀</button>
+  <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:space-between;padding-right:14px">
       <div>
-        <div class="brand">惟元</div>
+        <div class="brand" onclick="switchView('dashboard')" style="cursor:pointer" title="回首頁">惟元</div>
         <div class="sub">專案進度追蹤系統</div>
       </div>
       <button onclick="openAddTask()" title="新增任務" style="width:28px;height:28px;border-radius:7px;border:1.5px solid var(--border);background:var(--surface);color:var(--accent);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='var(--surface)'">＋</button>
@@ -196,15 +221,15 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="nav-label">主選單</div>
       <div class="nav-item active" onclick="switchView('dashboard')"><span class="icon">📅</span>當週任務</div>
       <div class="nav-item" onclick="switchView('roadmap')"><span class="icon">🗺</span>三個月路線圖</div>
-      <div class="nav-item" onclick="switchView('gantt')"><span class="icon">📊</span>年度甘特圖</div>
       <div class="nav-item" onclick="switchView('tasks')"><span class="icon">📋</span>全部任務<span class="nav-badge" id="badge-overdue" style="display:none">0</span></div>
       <div class="nav-item" onclick="switchView('kanban')"><span class="icon">🗂</span>看板視圖</div>
       <div class="nav-label">專案篩選</div>
-      <div class="nav-item" onclick="switchView('tasks');setFilter('project','line')"><span class="icon" style="color:#00b900">●</span>LINE Bot</div>
-      <div class="nav-item" onclick="switchView('tasks');setFilter('project','web-product')"><span class="icon" style="color:#3b6e5e">●</span>商品視覺</div>
-      <div class="nav-item" onclick="switchView('tasks');setFilter('project','web-seo')"><span class="icon" style="color:#1a6896">●</span>SEO 內容</div>
-      <div class="nav-item" onclick="switchView('tasks');setFilter('project','brand')"><span class="icon" style="color:#9b4e7e">●</span>品牌視覺</div>
-      <div class="nav-item" onclick="switchView('tasks');setFilter('project','sys')"><span class="icon" style="color:#5a4abf">●</span>進貨系統</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','line')"><span class="icon" style="color:#059669">●</span>LINE Bot</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','web-product')"><span class="icon" style="color:#0284c7">●</span>商品視覺</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','web-seo')"><span class="icon" style="color:#d97706">●</span>SEO 內容</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','brand')"><span class="icon" style="color:#db2777">●</span>品牌視覺</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','sys')"><span class="icon" style="color:#7c3aed">●</span>進貨系統</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','monitor')"><span class="icon" style="color:#0891b2">●</span>數據監控</div>
       <div class="nav-label">工具</div>
       <div class="nav-item" onclick="switchView('settings')"><span class="icon">⚙️</span>設定</div>
     </div>
@@ -237,6 +262,27 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           </div>
           <div style="font-size:36px;opacity:.5">🌿</div>
         </div>
+        <div style="margin-bottom:16px;padding:10px 20px;background:rgba(255,255,255,.15);border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;opacity:.7">✦</span>
+          <span id="daily-quote-text" style="font-size:12px;color:rgba(255,255,255,.85);font-style:italic;letter-spacing:.03em"></span>
+        </div>
+        <div id="year-countdown" style="margin-bottom:14px;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:18px">⏳</span>
+            <div>
+              <div style="font-size:11px;color:var(--ink-4);margin-bottom:2px">今年剩餘時間</div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink)" id="countdown-text">計算中…</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--ink-4);margin-bottom:2px">年度進度</div>
+            <div style="width:120px;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;border:1px solid var(--border)">
+              <div id="year-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--accent),#5a9e8e);border-radius:3px;transition:width .5s ease"></div>
+            </div>
+            <div style="font-size:10px;color:var(--ink-4);margin-top:3px" id="year-pct-text"></div>
+          </div>
+        </div>
+
         <div class="stats-row">
           <div class="stat-card urgent"><div class="stat-num" id="stat-overdue">0</div><div class="stat-label">⚠️ 已逾期</div></div>
           <div class="stat-card today"><div class="stat-num" id="stat-today">0</div><div class="stat-label">📅 本週到期</div></div>
@@ -266,22 +312,6 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
         </div>
       </div>
 
-      <!-- Gantt -->
-      <div class="view" id="view-gantt">
-        <div class="section">
-          <div class="section-header">
-            <div><div class="section-title">年度甘特圖</div><div class="section-sub" id="gantt-year-label"></div></div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <button class="btn btn-secondary btn-sm" onclick="ganttPrevYear()">‹ 上一年</button>
-              <button class="btn btn-secondary btn-sm" onclick="ganttNextYear()">下一年 ›</button>
-            </div>
-          </div>
-          <div class="card gantt-wrap">
-            <div id="gantt-container"></div>
-          </div>
-        </div>
-      </div>
-
       <!-- All Tasks -->
       <div class="view" id="view-tasks">
         <div class="task-filters" id="task-filters">
@@ -293,6 +323,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           <button class="filter-btn" onclick="setFilter('project','web-product')" data-filter="project-web-product">商品視覺</button>
           <button class="filter-btn" onclick="setFilter('project','web-seo')" data-filter="project-web-seo">SEO 內容</button>
           <button class="filter-btn" onclick="setFilter('project','brand')" data-filter="project-brand">品牌視覺</button>
+          <button class="filter-btn" onclick="setFilter('project','monitor')" data-filter="project-monitor">數據監控</button>
           <button class="filter-btn" onclick="setFilter('project','sys')" data-filter="project-sys">進貨系統</button>
           <button class="filter-btn" onclick="setFilter('done')" data-filter="done">✅ 已完成</button>
         </div>
@@ -373,6 +404,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
             <option value="web-seo">🔵 SEO 內容</option>
             <option value="brand">🟣 品牌視覺</option>
             <option value="sys">🔵 進貨系統</option>
+            <option value="monitor">🔵 數據監控</option>
             <option value="other" selected>🟡 其他</option>
           </select>
         </div>
@@ -464,7 +496,7 @@ async function syncNow() {
       if(r.ok){
         const data=await r.json();
         if(data.length>0){
-          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done}));
+          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done,completed_at:t.completed_at||null}));
           saveTasks(); renderAll();
           toast(`↺ 已同步 ${tasks.length} 筆任務`,'success');
         } else {
@@ -474,6 +506,234 @@ async function syncNow() {
     } catch(e){ toast('網路錯誤','error'); }
   } else { toast('尚未設定 Supabase','error'); }
   if(btn){ btn.textContent='↺ 同步'; btn.disabled=false; }
+}
+
+
+// ── 每日一句 ──────────────────────────────────────────
+const DAILY_QUOTES = [
+  // ── 自我成長 ──
+  '先完成，再完美。',
+  '慢慢來，比較快。',
+  '不需要全部想清楚，先踏出第一步。',
+  '每天進步一點點，一年後你認不出自己。',
+  '放手，才有空間接住新的。',
+  '你已經開始了，這就是最難的部分。',
+  '你只需要知道下一步。',
+  '把最難的那件事排在最前面。',
+  '做了再說，想了再想只會更亂。',
+  '信任自己第一個直覺。',
+  // ── 工作與行動 ──
+  '今天能交出去的，就不要留到明天。',
+  '一次只做一件事，把它做完。',
+  '把清單縮短，而不是把時間拉長。',
+  '那個一直拖著的事，今天就解決它。',
+  '去做就知道了。',
+  '完成比完美更有價值。',
+  '細節決定品質，但不要讓細節拖住進度。',
+  '把它切成三個步驟，先做第一個。',
+  '小事做好，大事自然跟上。',
+  '先把桌子清乾淨。',
+  // ── 心態與智慧 ──
+  '你現在擔心的事，三個月後不會記得。',
+  '這件事三年後還重要嗎？',
+  '休息也是工作的一部分。',
+  '不需要每個人都同意你。',
+  '說「不」，也是一種完成。',
+  '有時候不行動，也是一種選擇。',
+  '對的事情，不需要說服自己。',
+  '今天的混亂，是明天秩序的材料。',
+  '答案早就在你心裡了。',
+  '把注意力放在你能控制的事上。',
+  // ── 鼓勵 ──
+  '你已經做得比自己以為的更好。',
+  '你值得把事情做好。',
+  '你在的地方，就是對的地方。',
+  '現在做，以後的你會感謝你。',
+  '繼續，你走在對的路上。',
+  '這件事已經夠好了。',
+  '今天的你，比昨天的你更清楚方向。',
+  '沒有人第一次就做得完美。',
+  '你有足夠的時間，只是不在同一天。',
+  '做一個讓未來的你感謝的決定。',
+  // ── 名人 中文 ──
+  '不積跬步，無以至千里。── 荀子',
+  '千里之行，始於足下。── 老子',
+  '知之者不如好之者，好之者不如樂之者。── 孔子',
+  '學而不思則罔，思而不學則殆。── 孔子',
+  '吾日三省吾身。── 曾子',
+  '天下難事，必作於易；天下大事，必作於細。── 老子',
+  '己所不欲，勿施於人。── 孔子',
+  '人無遠慮，必有近憂。── 孔子',
+  '工欲善其事，必先利其器。── 孔子',
+  '博學之，審問之，慎思之，明辨之，篤行之。── 《禮記》',
+  '鍥而不捨，金石可鏤。── 荀子',
+  '路漫漫其修遠兮，吾將上下而求索。── 屈原',
+  '業精於勤，荒於嬉。── 韓愈',
+  '不經一番寒徹骨，焉得梅花撲鼻香。── 黃蘗禪師',
+  '志之所趨，無遠弗屆。── 金纓',
+  '寶劍鋒從磨礪出，梅花香自苦寒來。── 古諺',
+  '讀書百遍，其義自見。── 古諺',
+  '凡事豫則立，不豫則廢。── 《禮記》',
+  '三人行，必有我師焉。── 孔子',
+  '朝起早，夜眠遲，老易至，惜此時。── 朱柏廬',
+  // ── 名人 英文（含翻譯）──
+  '"The only way to do great work is to love what you do." — Steve Jobs｜做偉大工作的唯一方法，是熱愛你所做的事。',
+  '"In the middle of difficulty lies opportunity." — Einstein｜困難之中，藏著機會。',
+  '"It does not matter how slowly you go as long as you do not stop." — Confucius｜走得再慢也不怕，怕的是停下來。',
+  '"The secret of getting ahead is getting started." — Mark Twain｜超越別人的秘密，就是先動起來。',
+  '"Quality is not an act, it is a habit." — Aristotle｜品質不是一個行為，而是一種習慣。',
+  '"You miss 100% of the shots you don't take." — Wayne Gretzky｜不出手，就是百分之百的失誤。',
+  '"Whether you think you can or you can't, you're right." — Henry Ford｜你認為自己能還是不能，你都是對的。',
+  '"Simplicity is the ultimate sophistication." — Leonardo da Vinci｜簡單，是最高深的複雜。',
+  '"It always seems impossible until it's done." — Nelson Mandela｜事情完成之前，看起來永遠是不可能的。',
+  '"The best time to plant a tree was 20 years ago. The second best time is now." — Chinese Proverb｜種樹最好的時機是20年前，其次是現在。',
+  '"Done is better than perfect." — Sheryl Sandberg｜完成勝過完美。',
+  '"Focus on being productive instead of busy." — Tim Ferriss｜專注於有成效，而不是忙碌。',
+  '"Work smarter, not harder." — Allan F. Mogensen｜聰明地工作，而不只是努力地工作。',
+  '"Ideas without execution are just dreams." — Unknown｜沒有執行的想法，只是夢想。',
+  '"Small steps in the right direction beat big steps in the wrong direction." — Unknown｜往對的方向踏出小步，勝過往錯的方向大步跑。',
+  '"The key is not to prioritize what's on your schedule, but to schedule your priorities." — Stephen Covey｜重點不是把行程安排好，而是把優先順序排進行程。',
+  '"Vision without action is a daydream. Action without vision is a nightmare." — Japanese Proverb｜有願景沒行動是白日夢；有行動沒願景是惡夢。',
+  '"Success is the sum of small efforts repeated day in and day out." — Robert Collier｜成功是每天重複小努力的總和。',
+  '"Your time is limited, so don't waste it living someone else's life." — Steve Jobs｜你的時間有限，別浪費在活別人的人生上。',
+  '"Perfection is the enemy of good." — Voltaire｜完美是良好的敵人。',
+  // ── 商業與創業 ──
+  '"Chase the vision, not the money; the money will end up following you." — Tony Hsieh｜追逐願景，不是金錢；金錢自然會跟上來。',
+  '"Move fast and learn things." — Unknown｜快速前進，同時不斷學習。',
+  '"Customers don't know what they want until you show it to them." — Steve Jobs｜在你展示之前，客戶不知道自己想要什麼。',
+  '"The best marketing is a happy customer." — Unknown｜最好的行銷，是一個滿意的客戶。',
+  '"Your most unhappy customers are your greatest source of learning." — Bill Gates｜最不滿意的客戶，是你最大的學習來源。',
+  '"Opportunities don't happen. You create them." — Chris Grosser｜機會不會自己來，你要自己創造它。',
+  '"If you're not embarrassed by the first version, you launched too late." — Reid Hoffman｜如果你對第一版不感到羞恥，你上線得太晚了。',
+  '"Build something 100 people love, not something 1 million people kind of like." — Paul Graham｜打造讓100個人深愛的東西，而不是讓百萬人還好的東西。',
+  '"A brand is what people say about you when you're not in the room." — Jeff Bezos｜品牌，是你不在場時別人對你的評價。',
+  '"Make it simple. Make it memorable. Make it inviting to look at." — Leo Burnett｜讓它簡單，讓它令人難忘，讓它讓人想看。',
+  // ── 中藥與養生智慧 ──
+  '上工治未病，不治已病。── 《黃帝內經》',
+  '正氣存內，邪不可干。── 《黃帝內經》',
+  '藥補不如食補，食補不如動補。── 古諺',
+  '春夏養陽，秋冬養陰。── 《黃帝內經》',
+  '人有三寶精氣神，不可缺一。── 古諺',
+  '流水不腐，戶樞不蠹。── 《呂氏春秋》',
+  '陰平陽秘，精神乃治。── 《黃帝內經》',
+  '起居有常，飲食有節。── 《黃帝內經》',
+  '恬淡虛無，真氣從之。── 《黃帝內經》',
+  '善治者治皮毛，其次治肌膚，其次治筋脈。── 《黃帝內經》',
+  // ── 生活哲學 ──
+  '"Wherever you are, be all there." — Jim Elliot｜無論你在哪裡，全心投入當下。',
+  '"Enjoy the little things." — Robert Brault｜享受生命中的小事。',
+  '"Happiness is not something readymade. It comes from your own actions." — Dalai Lama｜快樂不是現成的，它來自你自己的行動。',
+  '"The present moment is the only time over which we have dominion." — Tolstoy｜當下，是我們唯一能掌握的時間。',
+  '"Less is more." — Ludwig Mies van der Rohe｜少即是多。',
+  '"Know yourself." — Socrates｜了解你自己。',
+  '"Be the change you wish to see in the world." — Gandhi｜成為你希望在世界上看見的改變。',
+  '"Start where you are. Use what you have. Do what you can." — Arthur Ashe｜從你所在之處開始，用你所有的，做你能做的。',
+  '"It's not about having time. It's about making time." — Unknown｜不是要有時間，而是要創造時間。',
+  '"Take care of your body. It's the only place you have to live." — Jim Rohn｜照顧你的身體，那是你唯一要住的地方。',
+  // ── 最後 10 句壓軸 ──
+  '每一個當下，都是最好的起點。',
+  '把今天過好，明天自然會更好。',
+  '你的努力，正在悄悄改變你的世界。',
+  '不比較，只比昨天的自己更好一點。',
+  '把時間給值得的事，把心力給值得的人。',
+  '"One day or day one. You decide." — Unknown｜某一天，還是第一天，由你決定。',
+  '"Discipline is choosing between what you want now and what you want most." — Unknown｜自律，是在當下的慾望和長遠的目標之間做出選擇。',
+  '"You don't have to be great to start, but you have to start to be great." — Zig Ziglar｜不必偉大才能開始，但必須開始才能偉大。',
+  '"Create more than you consume." — Unknown｜創造多於消費。',
+  '今天先做完一件事，再來讀這句話。',
+];
+
+function showDailyQuote() {
+  const el = document.getElementById('daily-quote-text');
+  if(!el) return;
+  const now = new Date();
+  const seed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+  el.textContent = DAILY_QUOTES[seed % DAILY_QUOTES.length];
+}
+
+
+// ── Sidebar Toggle ──────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const toggle  = document.getElementById('sidebar-toggle');
+  const main    = document.querySelector('.main');
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+  if(isCollapsed) {
+    toggle.textContent = '▶';
+    toggle.classList.add('collapsed');
+    main.style.marginLeft = '0';
+  } else {
+    toggle.textContent = '◀';
+    toggle.classList.remove('collapsed');
+    main.style.marginLeft = '224px';
+  }
+  localStorage.setItem('sidebar_collapsed', isCollapsed ? '1' : '0');
+}
+
+function initSidebar() {
+  // 手機版預設收合
+  const isMobile = window.innerWidth <= 768;
+  const savedState = localStorage.getItem('sidebar_collapsed');
+  const shouldCollapse = isMobile || savedState === '1';
+  if(shouldCollapse) {
+    const sidebar = document.getElementById('sidebar');
+    const toggle  = document.getElementById('sidebar-toggle');
+    const main    = document.querySelector('.main');
+    if(sidebar) sidebar.classList.add('collapsed');
+    if(toggle) { toggle.textContent = '▶'; toggle.classList.add('collapsed'); }
+    if(main)   main.style.marginLeft = '0';
+  }
+}
+
+
+// ── 定期任務自動重置 ──────────────────────────────────
+// 每月初自動把上月完成的監控任務重置為未完成
+
+// ── 年度倒數計時 ──────────────────────────────────────
+function updateYearCountdown() {
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+  const yearStart = new Date(year, 0, 1);
+  const totalMs  = yearEnd - yearStart;
+  const remainMs = yearEnd - now;
+  const passedMs  = now - yearStart;
+
+  const days    = Math.floor(remainMs / 86400000);
+  const hours   = Math.floor((remainMs % 86400000) / 3600000);
+  const minutes = Math.floor((remainMs % 3600000) / 60000);
+  const pct     = Math.min(100, ((passedMs / totalMs) * 100)).toFixed(1);
+
+  const el  = document.getElementById('countdown-text');
+  const bar = document.getElementById('year-progress-bar');
+  const pctEl = document.getElementById('year-pct-text');
+
+  if(el)    el.textContent  = `還剩 ${days} 天 ${hours} 小時 ${minutes} 分`;
+  if(bar)   bar.style.width = pct + '%';
+  if(pctEl) pctEl.textContent = `已過 ${pct}%`;
+}
+
+function autoResetRecurring() {
+  const now = new Date();
+  const thisYearMonth = now.getFullYear() * 100 + (now.getMonth() + 1);
+  let resetCount = 0;
+  tasks.forEach(t => {
+    if(t.project !== 'monitor') return;
+    if(!t.done) return;
+    if(!t.completed_at) { t.done = false; resetCount++; return; }
+    const d = new Date(t.completed_at);
+    const completedYM = d.getFullYear() * 100 + (d.getMonth() + 1);
+    if(completedYM < thisYearMonth) {
+      t.done = false;
+      t.completed_at = null;
+      resetCount++;
+    }
+  });
+  if(resetCount > 0) {
+    saveTasks();
+    tasks.filter(t=>t.project==='monitor').forEach(t=>persistTask(t));
+    console.log(`自動重置 ${resetCount} 個定期任務`);
+  }
 }
 
 function loadConfig() {
@@ -491,8 +751,10 @@ async function loadTasks() {
       if(r.ok){
         const data=await r.json();
         if(data.length>0){
-          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done}));
-          saveTasks(); renderAll(); return;
+          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done,completed_at:t.completed_at||null}));
+          saveTasks();
+          autoResetRecurring();
+          renderAll(); return;
         }
         // Supabase 是空的 → 用預設任務資料初始化
         await seedAndPush();
@@ -520,6 +782,8 @@ async function deleteTaskRemote(id) {
 function renderAll() { renderDashboard(); renderTaskList(); renderKanban(); renderRoadmap(); updateBadges(); refreshPreview(); }
 
 function renderDashboard() {
+  showDailyQuote();
+  updateYearCountdown();
   const now=new Date();
   // 本週範圍：今天到 7 天後
   const weekStart = today();
@@ -615,6 +879,7 @@ function renderRoadmap() {
     { key:'web-product',   label:'商品視覺' },
     { key:'web-seo',       label:'SEO 內容' },
     { key:'brand',         label:'品牌視覺' },
+    { key:'monitor',       label:'數據監控' },
   ];
   // Group tasks by project + rough month (by priority: week/month = m1/m2, long = m3)
   const getMonth = t => { if(t.priority==='week') return 0; if(t.priority==='month') return 1; return 2; };
@@ -646,108 +911,6 @@ function updateBadges() {
   const n=tasks.filter(t=>!t.done&&t.due&&inDays(t.due)<0).length;
   const b=document.getElementById('badge-overdue');
   if(n>0){b.textContent=n;b.style.display='';}else b.style.display='none';
-}
-
-// ── Gantt ──────────────────────────────────────────────
-let ganttYear = new Date().getFullYear();
-
-function ganttPrevYear() { ganttYear--; renderGantt(); }
-function ganttNextYear() { ganttYear++; renderGantt(); }
-
-function renderGantt() {
-  document.getElementById('gantt-year-label').textContent = `${ganttYear} 年 1 月 ─ 12 月`;
-  const yearStart = new Date(ganttYear, 0, 1);
-  const yearEnd   = new Date(ganttYear, 11, 31);
-  const totalDays = Math.round((yearEnd - yearStart) / 86400000) + 1;
-  const months    = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  const monthDays = [31,28,31,30,31,30,31,31,30,31,30,31];
-  if(ganttYear%4===0) monthDays[1]=29;
-
-  const today = new Date(); today.setHours(0,0,0,0);
-  const todayOffset = Math.round((today - yearStart) / 86400000);
-  const todayPct = (todayOffset / totalDays) * 100;
-
-  // Build header
-  let headerCells = `<th class="gantt-label-col">任務</th>`;
-  months.forEach((m,i) => {
-    const w = (monthDays[i]/totalDays*100).toFixed(2);
-    headerCells += `<th style="width:${w}%" class="${i<11?'':'gantt-month-sep'}">${m}</th>`;
-  });
-
-  // Build month offset map for bar positioning
-  const monthOffsets = [0];
-  for(let i=0;i<11;i++) monthOffsets.push(monthOffsets[i]+monthDays[i]);
-
-  function taskToBar(t) {
-    const proj = PROJECT_MAP[t.project]||PROJECT_MAP.other;
-    const color = {
-      line:'#00b900', 'web-product':'#3b6e5e',
-      'web-seo':'#1a6896', brand:'#9b4e7e',
-      sys:'#5a4abf', other:'#8a6b1a'
-    }[t.project]||'#8a6b1a';
-
-    // Start: today if no start, or Jan 1 if past
-    let startDate = new Date(Math.max(today, yearStart));
-    // Due date
-    let endDate = t.due ? new Date(t.due) : null;
-
-    // If task has due date in this year
-    if(endDate && endDate.getFullYear()===ganttYear) {
-      if(startDate > endDate) startDate = new Date(yearStart);
-      const startOff = Math.max(0, Math.round((startDate - yearStart)/86400000));
-      const endOff   = Math.min(totalDays-1, Math.round((endDate - yearStart)/86400000));
-      const left  = (startOff/totalDays*100).toFixed(2);
-      const width = Math.max(0.5, ((endOff-startOff+1)/totalDays*100)).toFixed(2);
-      return `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color}" title="${esc(t.title)} — ${t.due}"></div>`;
-    } else if(!endDate) {
-      // No due: show dot at today if in this year
-      if(today.getFullYear()===ganttYear){
-        const off = Math.round((today-yearStart)/86400000);
-        const left = (off/totalDays*100).toFixed(2);
-        return `<div class="gantt-bar no-due" style="left:${left}%;background:${color}" title="${esc(t.title)} — 無截止日"></div>`;
-      }
-      return '';
-    }
-    return '';
-  }
-
-  // Group by project
-  const PROJ_ORDER = ['line','web-product','web-seo','brand','sys','other'];
-  let rows = '';
-  PROJ_ORDER.forEach(pk => {
-    const pm = PROJECT_MAP[pk]||PROJECT_MAP.other;
-    const pts = tasks.filter(t=>t.project===pk && !t.done);
-    if(!pts.length) return;
-    rows += `<tr class="gantt-section-row"><td colspan="${months.length+1}">${pm.label}</td></tr>`;
-    pts.forEach(t => {
-      const bar = taskToBar(t);
-      rows += `<tr class="gantt-task-row">
-        <td class="gantt-label-cell gantt-label-col">
-          <div class="gantt-task-label">
-            <span class="tag ${pm.cls}" style="font-size:9px;padding:1px 5px">${pm.label.slice(0,2)}</span>
-            <span title="${esc(t.title)}">${esc(t.title)}</span>
-          </div>
-        </td>
-        ${months.map((_,mi)=>{
-          const isLast = mi===11;
-          return `<td class="${isLast?'gantt-month-sep':''}" style="position:relative">
-            ${mi===0&&todayPct>=0&&todayPct<=100?`<div class="gantt-today-line" style="left:${(todayOffset/totalDays*100).toFixed(2)}%"></div>`:''}
-            ${bar}
-          </td>`;
-        }).join('')}
-      </tr>`;
-    });
-  });
-
-  if(!rows) {
-    rows = `<tr><td colspan="${months.length+1}" style="text-align:center;padding:32px;color:var(--ink-4);font-size:13px">目前沒有進行中的任務</td></tr>`;
-  }
-
-  document.getElementById('gantt-container').innerHTML = `
-    <table class="gantt-table">
-      <thead><tr class="gantt-row-head">${headerCells}</tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
 }
 
 // ── Roadmap Drag & Drop ────────────────────────────────
@@ -821,7 +984,9 @@ function saveTask() {
 }
 function toggleDone(id) {
   const t=tasks.find(x=>x.id===id); if(!t) return;
-  t.done=!t.done; persistTask(t); renderAll();
+  t.done=!t.done;
+  t.completed_at = t.done ? new Date().toISOString().slice(0,10) : null;
+  persistTask(t); renderAll();
   toast(t.done?'✅ 完成！':'↩ 已恢復',t.done?'success':'');
 }
 function deleteTask(id) {
@@ -830,7 +995,7 @@ function deleteTask(id) {
 }
 
 // ── Nav ──
-const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',gantt:'年度甘特圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
+const VIEW_TITLES={dashboard:'當週任務一覽',roadmap:'三個月路線圖',tasks:'全部任務',kanban:'看板視圖',settings:'設定'};
 function switchView(v) {
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -839,7 +1004,6 @@ function switchView(v) {
   if(v==='tasks') renderTaskList();
   if(v==='kanban') renderKanban();
   if(v==='roadmap') renderRoadmapDraggable();
-  if(v==='gantt') renderGantt();
   if(v==='settings'){loadConfig();renderGuide();}
 }
 function setFilter(type,value) {
@@ -963,6 +1127,14 @@ function seedTasks() {
     // ── 進貨系統 ──
     { id:'s1', title:'確認進貨系統月底結算流程穩定', project:'sys', priority:'week', due:addDays(6), notes:'完整測試一次月底結算流程：產生報表、列印、標記付款。確認可穩定使用後，考慮是否要推廣給其他同事一起用。', done:false },
     { id:'s2', title:'評估拍照辨識進貨功能（Claude API）', project:'sys', priority:'long', due:null, notes:'拍銷貨單→AI自動辨識品項+金額，節省手動輸入時間。費用約NT$0.15-0.5/張。等系統穩定後再評估是否導入，我已經設計好這個功能可以快速加進去。', done:false },
+
+    // ── 數據監控（每月定期）──
+    { id:'m1', title:'【每月】GA + GSC 成效回顧', project:'monitor', priority:'month', due:null, notes:'每月1-5日執行。GA 重點看：流量來源、最多人看的商品頁、跳出率高的頁面。GSC 重點看：哪些關鍵字有排名提升、哪些頁面被點擊最多、有無索引錯誤。把數字記錄下來和上個月比較，找出要加強的方向。', done:false },
+    { id:'m2', title:'【每月】官網銷售數據分析', project:'monitor', priority:'month', due:null, notes:'每月1-5日執行。SHOPLINE 後台 → 數據報表：本月訂單數、營業額、客單價、退貨率。重點看：哪幾個商品最暢銷、哪些商品幾乎沒人買（考慮下架或優化）、有沒有明顯的銷售高峰日（找規律）。', done:false },
+    { id:'m3', title:'【每月】蝦皮銷售數據分析', project:'monitor', priority:'month', due:null, notes:'每月1-5日執行。蝦皮賣場後台：本月銷量、評價狀況、商品排名變化。重點看：哪個商品評價最好/最差、流量來源（搜尋 vs 廣告）、和官網數據交叉比較（哪個通路效益更好）。', done:false },
+    { id:'m4', title:'【每月】LINE 官方帳號數據回顧', project:'monitor', priority:'month', due:null, notes:'每月1-5日執行。LINE OA 後台：訊息觸及率、封鎖率、好友成長數。重點看：哪則推播開封率最高（下次仿照）、有沒有好友流失（代表內容不吸引人）、Bot 上線後人工客服比例有沒有下降。', done:false },
+    { id:'m5', title:'【每季】整體數位優化成效總結', project:'monitor', priority:'long', due:null, notes:'每季執行一次（3月/6月/9月/12月）。把過去三個月的 GA、GSC、官網、蝦皮、LINE 數據彙整成一份簡單的紀錄，回顧這季做了什麼、有沒有成效、下季要調整什麼方向。這份紀錄也是向長輩或團隊說明數位化成果的依據。', done:false },
+    { id:'m6', title:'【每週】任務系統清理與優先度調整', project:'monitor', priority:'week', due:null, notes:'每週一執行，5分鐘即可。把完成的任務標記完成，把優先度不對的任務調整，新增這週想到的任務。保持系統乾淨，才能讓它真正幫你管理工作而不是變成另一個待辦清單墓地。', done:false },
   ];
   saveTasks();
 }
@@ -986,7 +1158,9 @@ async function seedAndPush() {
 
 
 loadConfig();
+initSidebar();
 loadTasks();
+setInterval(updateYearCountdown, 60000);
 </script>
 </body>
 </html>
