@@ -737,8 +737,8 @@ function seedTasks() {
     // ── 進貨系統 ──
     { id:'s1', title:'確認進貨系統月底結算流程穩定', project:'sys', priority:'week', due:addDays(6), notes:'完整測試一次月底結算流程：產生報表、列印、標記付款。確認可穩定使用後，考慮是否要推廣給其他同事一起用。', done:false },
     { id:'s2', title:'評估拍照辨識進貨功能（Claude API）', project:'sys', priority:'long', due:null, notes:'拍銷貨單→AI自動辨識品項+金額，節省手動輸入時間。費用約NT$0.15-0.5/張。等系統穩定後再評估是否導入，我已經設計好這個功能可以快速加進去。', done:false },
-
-    saveTasks();
+  ];
+  saveTasks();
 }
 
 loadConfig();
