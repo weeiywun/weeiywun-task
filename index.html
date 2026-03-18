@@ -196,6 +196,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
         <button onclick="openAddTask()" id="topbar-add-btn" title="新增任務" style="width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--accent);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">＋</button>
       </div>
       <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="syncNow()" id="sync-btn" title="從 Supabase 重新同步">↺ 同步</button>
         <button class="btn btn-secondary btn-sm" onclick="sendLineTest()">📱 測試 LINE</button>
       </div>
     </div>
@@ -412,6 +413,28 @@ function priorityTag(p) { const m=PRIORITY_MAP[p]||PRIORITY_MAP.month; return `<
 function dueTag(due) { if(!due) return ''; const cls=dueCls(due); return `<span class="due-tag ${cls}">📅 ${formatDateFull(due)}</span>`; }
 
 // ── Storage ──
+
+async function syncNow() {
+  const btn = document.getElementById('sync-btn');
+  if(btn){ btn.textContent='同步中…'; btn.disabled=true; }
+  if(supabaseURL&&supabaseKey){
+    try{
+      const r=await fetch(`${supabaseURL}/rest/v1/tasks?order=created_at.desc`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});
+      if(r.ok){
+        const data=await r.json();
+        if(data.length>0){
+          tasks=data.map(t=>({id:t.id,title:t.title,project:t.project,priority:t.priority,due:t.due_date,notes:t.notes,done:t.done}));
+          saveTasks(); renderAll();
+          toast(`↺ 已同步 ${tasks.length} 筆任務`,'success');
+        } else {
+          toast('Supabase 目前無資料','');
+        }
+      } else { toast('同步失敗，請稍後再試','error'); }
+    } catch(e){ toast('網路錯誤','error'); }
+  } else { toast('尚未設定 Supabase','error'); }
+  if(btn){ btn.textContent='↺ 同步'; btn.disabled=false; }
+}
+
 function loadConfig() {
   supabaseURL=localStorage.getItem('sb_url')||'https://lkryumerfbqfwfyxegve.supabase.co';
   supabaseKey=localStorage.getItem('sb_key')||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrcnl1bWVyZmJxZndmeXhlZ3ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjQxMDgsImV4cCI6MjA4OTIwMDEwOH0.AA0aqoYqln4e-uoMoqQpk_BfqexA6ncHOLi9SDOne34';
