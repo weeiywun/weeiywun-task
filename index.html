@@ -30,6 +30,7 @@
   --p-sys: #7c3aed; --p-sys-bg: #ede9fe;
   --p-brand: #db2777; --p-brand-bg: #fce7f3;
   --p-other: #78716c; --p-other-bg: #f5f5f4;
+  --p-wholesale: #ca8a04; --p-wholesale-bg: #fef9c3;
   --p-monitor: #0891b2; --p-monitor-bg: #e0f7fa;
 }
 /* ─── Password Lock ─── */
@@ -142,6 +143,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .tag-project-sys { background: var(--p-sys-bg); color: #5b21b6; }
 .tag-project-brand { background: var(--p-brand-bg); color: #9d174d; }
 .tag-project-other { background: var(--p-other-bg); color: #44403c; }
+.tag-project-wholesale { background: var(--p-wholesale-bg); color: #854d0e; }
 .tag-project-monitor { background: var(--p-monitor-bg); color: #0e7490; }
 .priority-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .priority-week { background: var(--danger); }
@@ -253,6 +255,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .chip-sys { background:#ede9fe; color:#5b21b6; }
 .chip-brand { background:#fce7f3; color:#9d174d; }
 .chip-monitor { background:#e0f7fa; color:#0e7490; }
+.chip-wholesale { background:#fef9c3; color:#854d0e; }
 .chip-other { background:#f5f5f4; color:#44403c; }
 
 
@@ -316,6 +319,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
 .rm-task.brand { border-left-color: var(--p-brand); }
 .rm-task.sys { border-left-color: var(--p-sys); }
 .rm-task.monitor { border-left-color: var(--p-monitor); }
+.rm-task.wholesale { border-left-color: var(--p-wholesale); }
 .rm-task.milestone { background: #e8f3ef; border-left-color: var(--accent); font-weight: 600; }
 .rm-task.done { opacity: .45; text-decoration: line-through; }
 </style>
@@ -369,6 +373,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','brand')"><span class="icon" style="color:#db2777">●</span>品牌視覺</div>
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','sys')"><span class="icon" style="color:#7c3aed">●</span>進貨系統</div>
       <div class="nav-item" onclick="switchView('tasks');setFilter('project','monitor')"><span class="icon" style="color:#0891b2">●</span>數據監控</div>
+      <div class="nav-item" onclick="switchView('tasks');setFilter('project','wholesale')"><span class="icon" style="color:#ca8a04">●</span>批發零售</div>
       <div class="nav-label">工具</div>
       <div class="nav-item" onclick="switchView('settings')"><span class="icon">⚙️</span>設定</div>
     </div>
@@ -476,6 +481,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
           <button class="filter-btn" onclick="setFilter('project','web-seo')" data-filter="project-web-seo">SEO 內容</button>
           <button class="filter-btn" onclick="setFilter('project','brand')" data-filter="project-brand">品牌視覺</button>
           <button class="filter-btn" onclick="setFilter('project','monitor')" data-filter="project-monitor">數據監控</button>
+          <button class="filter-btn" onclick="setFilter('project','wholesale')" data-filter="project-wholesale">批發零售</button>
           <button class="filter-btn" onclick="setFilter('project','sys')" data-filter="project-sys">進貨系統</button>
           <button class="filter-btn" onclick="setFilter('done')" data-filter="done">✅ 已完成</button>
         </div>
@@ -570,6 +576,7 @@ body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: va
             <option value="brand">🟣 品牌視覺</option>
             <option value="sys">🔵 進貨系統</option>
             <option value="monitor">🔵 數據監控</option>
+            <option value="wholesale">🟡 批發零售</option>
             <option value="other" selected>🟡 其他</option>
           </select>
         </div>
@@ -607,12 +614,14 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow all" ON tasks FOR ALL USING (true) WITH CHECK (true);`;
 
 const PROJECT_MAP = {
-  line:     { label:'LINE Bot',   cls:'tag-project-line' },
-  'web-product': { label:'商品視覺',  cls:'tag-project-web-product' },
-  'web-seo':     { label:'SEO內容',   cls:'tag-project-web-seo' },
-  brand:    { label:'品牌視覺',  cls:'tag-project-brand' },
-  sys:      { label:'進貨系統',  cls:'tag-project-sys' },
-  other:    { label:'其他',      cls:'tag-project-other' },
+  line:      { label:'LINE Bot',  cls:'tag-project-line' },
+  'web-product': { label:'商品視覺', cls:'tag-project-web-product' },
+  'web-seo': { label:'SEO內容',   cls:'tag-project-web-seo' },
+  brand:     { label:'品牌視覺',  cls:'tag-project-brand' },
+  sys:       { label:'進貨系統',  cls:'tag-project-sys' },
+  monitor:   { label:'數據監控',  cls:'tag-project-monitor' },
+  wholesale: { label:'批發零售',  cls:'tag-project-wholesale' },
+  other:     { label:'其他',      cls:'tag-project-other' },
 };
 const PRIORITY_MAP = {
   week:  { label:'本週必做', dotCls:'priority-week',  order:0 },
@@ -824,10 +833,10 @@ function renderCompleted() {
   const body = document.getElementById('completed-body');
   if(!body) return;
 
-  const PROJ_ORDER = ['line','web-product','web-seo','brand','sys','monitor','other'];
+  const PROJ_ORDER = ['line','web-product','web-seo','brand','sys','monitor','wholesale','other'];
   const PROJ_COLORS = {
     'line':'#059669','web-product':'#0284c7','web-seo':'#d97706',
-    'sys':'#7c3aed','brand':'#db2777','monitor':'#0891b2','other':'#78716c'
+    'sys':'#7c3aed','brand':'#db2777','monitor':'#0891b2','wholesale':'#ca8a04','other':'#78716c'
   };
 
   let html = '';
